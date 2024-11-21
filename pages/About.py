@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 
 # Set page configuration
 st.set_page_config(page_title="Beauty Buzz - About Us", page_icon="💄", layout="wide")
@@ -93,18 +94,10 @@ footer {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
+image = Image.open("./pages/images/image2.png")
 
-
-# About Us Section
-st.markdown("<div class='about-container'>"
-            "<div class='left-content'>"
-            "<h1>Empowering You to Explore the World of Beauty with AI-Powered Virtual Makeup Try-On</h1>"
-            "<p class='signature'>Beauty Buzz</p>"
-            "</div>"
-            "<div class='right-content'>"
-            "<img src='https://your-image-url.com' alt='Profile Picture'>"
-            "</div>"
-            "</div>", unsafe_allow_html=True)
+# Render the image in Streamlit
+st.image(image, caption="Try on MAKEUP")
 
 # Text Content Section
 st.markdown("<div class='text-content'>"

@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 
 # Set page configuration
 st.set_page_config(page_title="Healthcare", page_icon="🩺", layout="wide")
@@ -59,9 +60,11 @@ def render_healthcare_page():
         """,
         unsafe_allow_html=True,
     )
+    image = Image.open("./pages/images/image.png")
 
-    # Header
-    st.markdown("<h1>Healthcare Features</h1>", unsafe_allow_html=True)
+# Render the image in Streamlit
+    st.image(image)
+
 
     # Features grid with links
     st.markdown(

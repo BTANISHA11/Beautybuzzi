@@ -1,5 +1,5 @@
 import streamlit as st
-import os
+from PIL import Image
 
 # Set page configuration
 st.set_page_config(page_title="Beauty Buzz - Features", page_icon="✨", layout="wide")
@@ -164,48 +164,34 @@ body {
     }
 }
 </style>
-
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # Header
 st.markdown("<h1 class='features-title'>Our Features</h1>", unsafe_allow_html=True)
+image = Image.open("./pages/images/featureHome.png")
 
-# Image Group
-st.markdown("<div class='features-images'>", unsafe_allow_html=True)
-images = [
-    {"src": "https://via.placeholder.com/150", "class": "circle"},
-    {"src": "https://via.placeholder.com/300x400", "class": "large-rect"},
-    {"src": "https://via.placeholder.com/200x250", "class": "small-rect"},
-    {"src": "https://via.placeholder.com/150", "class": "circle"},
-    {"src": "https://via.placeholder.com/150", "class": "circle"}
-]
+# Render the image in Streamlit
+st.image(image, caption="Try on MAKEUP")
 
-for img in images:
-    st.markdown(f"""
-    <div class='image-item {img['class']}'>
-        <img src="{img['src']}" alt="Feature Image">
-    </div>
-    """, unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+
 
 # Feature Text
-st.markdown("<div class='features-text'>", unsafe_allow_html=True)
 features = [
     {
-        "title": "1 Real-Time Makeup Try-On",
+        "title": "Real-Time Makeup Try-On",
         "description": "Experiment with different makeup styles instantly using your live camera feed."
     },
     {
-        "title": "2 Occasion-Specific Suggestions",
+        "title": "Occasion-Specific Suggestions",
         "description": "Receive personalized makeup recommendations for every occasion."
     },
     {
-        "title": "3 Advanced Makeup Filters",
+        "title": "Advanced Makeup Filters",
         "description": "Filter products by price, brand, and occasion to find your ideal match."
     },
     {
-        "title": "4 AI-Powered Realism",
+        "title": "AI-Powered Realism",
         "description": "Leverage AI to apply makeup styles with precision and natural-looking results."
     }
 ]
@@ -222,3 +208,8 @@ for idx, feature in enumerate(features, 1):
     
     """, unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
+
+image = Image.open("./pages/images/image1.png")
+
+# Render the image in Streamlit
+st.image(image, caption="Try on MAKEUP")

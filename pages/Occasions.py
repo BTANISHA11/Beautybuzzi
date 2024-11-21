@@ -1,7 +1,12 @@
-import streamlit as st
 import os
+import cv2
+import numpy as np
+from skimage.filters import gaussian
+import streamlit as st
 from PIL import Image
-import requests
+from static.constants import DEFAULT_IMAGE_PATH
+from test import evaluate  # Assuming evaluate processes the image and returns parsing
+
 
 # Set page config
 st.set_page_config(page_title="Beauty Buzz - Occasions", page_icon="💄", layout="wide")
@@ -49,30 +54,79 @@ footer {
 }
 </style>
 """
-st.markdown(custom_css, unsafe_allow_html=True)
 
-# App Header
-st.markdown("<h1 class='header'>💄 Beauty Buzz: Makeup for Every Occasion 💄</h1>", unsafe_allow_html=True)
-st.write("")
+# Function to include custom CSS
+def add_custom_css():
+    st.markdown(f"<style>{custom_css}</style>", unsafe_allow_html=True)
 
-# Occasion Options
-st.markdown("<h3 class='subheader'>Choose your Occasion</h3>", unsafe_allow_html=True)
-occasion = st.selectbox(
-    "Select an Occasion",
-    ["Office Day", "Cocktail Party", "Wedding", "Birthday Party", "Night Out", "Casual Day"]
-)
+# Function to sharpen the image
+def sharpen(img):
+    img = img * 1.0
+    gauss_out = gaussian(img, sigma=5, channel_axis=-1)
+    alpha = 1.5
+    img_out = (img - gauss_out) * alpha + img
+    img_out = img_out / 255.0
+    img_out = np.clip(img_out, 0, 1) * 255
+    return np.array(img_out, dtype=np.uint8)
 
-# Display Occasion Image and Details
-image_mapping = {
-    "Office Day": "office_day.jpg",
-    "Cocktail Party": "cocktail_party.jpg",
-    "Wedding": "wedding.jpg",
-    "Birthday Party": "birthday_party.jpg",
-    "Night Out": "night_out.jpg",
-    "Casual Day": "casual_day.jpg",
-}
+# Function to apply hair color
+def hair(image, parsing, part=17, color=[230, 50, 20]):
+    b, g, r = color
+    tar_color = np.zeros_like(image)
+    tar_color[:, :, 0] = b
+    tar_color[:, :, 1] = g
+    tar_color[:, :, 2] = r
 
-if occasion:
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    tar_hsv = cv2.cvtColor(tar_color, cv2.COLOR_BGR2HSV)
+
+    if part in [12, 13]:
+        image_hsv[:, :, 0:2] = tar_hsv[:, :, 0:2]
+    else:
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
+
+    changed = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2BGR)
+    if part == 17:
+        changed = sharpen(changed)
+
+    changed[parsing != part] = image[parsing != part]
+    return changed
+
+# Streamlit app
+def render_occasions_page():
+    # Load custom CSS for styling
+    add_custom_css()
+
+    # Title and Description
+    st.markdown("<h1 class='header'>💄 Beauty Buzz: Makeup for Every Occasion 💄</h1>", unsafe_allow_html=True)
+    st.write("")
+
+    # Occasion Options
+    st.markdown("<h3 class='subheader'>Choose your Occasion</h3>", unsafe_allow_html=True)
+    
+    # Fixed parameters for occasions
+    occasion_params = {
+        "Office Day": {"hair_color": [128, 128, 128], "lip_color": [255, 182, 193]},  # Grey hair, pink lips
+        "Cocktail Party": {"hair_color": [0, 0, 255], "lip_color": [255, 0, 0]},      # Blue hair, red lips
+        "Wedding": {"hair_color": [255, 215, 0], "lip_color": [139, 0, 0]},          # Gold hair, deep red lips
+        "Birthday Party": {"hair_color": [255, 20, 147], "lip_color": [255, 165, 0]},# Pink hair, orange lips
+        "Night Out": {"hair_color": [0, 0, 0], "lip_color": [128, 0, 128]},          # Black hair, purple lips
+        "Casual Day": {"hair_color": [139, 69, 19], "lip_color": [255, 222, 173]},   # Brown hair, nude lips
+    }
+
+    # Dropdown to select an occasion
+    occasion = st.selectbox("Select an Occasion", list(occasion_params.keys()))
+
+    # Display Occasion Image and Details
+    image_mapping = {
+        "Office Day": "office_day.jpg",
+        "Cocktail Party": "cocktail_party.jpg",
+        "Wedding": "wedding.jpg",
+        "Birthday Party": "birthday_party.jpg",
+        "Night Out": "night_out.jpg",
+        "Casual Day": "casual_day.jpg",
+    }
+
     col1, col2 = st.columns([1, 2])
 
     with col1:
@@ -86,64 +140,55 @@ if occasion:
 
     with col2:
         st.markdown(f"<h4 class='occasion-title'>{occasion} Makeup Suggestions:</h4>", unsafe_allow_html=True)
-        if occasion == "Office Day":
-            st.write("Light and subtle makeup suitable for professional settings:")
-            st.write("- **Foundation**: Matte, lightweight\n"
-                     "- **Lipstick**: Nude shades\n"
-                     "- **Eyeliner**: Minimalistic\n"
-                     "- **Blush**: Soft pink or peach")
-        elif occasion == "Cocktail Party":
-            st.write("Glamorous makeup with bold choices:")
-            st.write("- **Foundation**: High-coverage\n"
-                     "- **Lipstick**: Bold red or berry tones\n"
-                     "- **Eyeliner**: Winged or cat-eye\n"
-                     "- **Blush**: Rosy tones")
-        elif occasion == "Wedding":
-            st.write("Traditional and vibrant look for celebrations:")
-            st.write("- **Foundation**: Dewy finish\n"
-                     "- **Lipstick**: Deep red or maroon\n"
-                     "- **Eyeliner**: Heavy, bridal\n"
-                     "- **Blush**: Rich rose")
-        elif occasion == "Birthday Party":
-            st.write("Fun and vibrant colors for a joyful vibe:")
-            st.write("- **Foundation**: Luminous\n"
-                     "- **Lipstick**: Coral or pink\n"
-                     "- **Eyeliner**: Glitter or metallic\n"
-                     "- **Blush**: Bright pink")
-        elif occasion == "Night Out":
-            st.write("Bold and dramatic look for the night:")
-            st.write("- **Foundation**: High-definition\n"
-                     "- **Lipstick**: Dark plum or wine shades\n"
-                     "- **Eyeliner**: Smokey eyes\n"
-                     "- **Blush**: Darker peach")
-        elif occasion == "Casual Day":
-            st.write("Natural, no-makeup look for a relaxed day:")
-            st.write("- **Foundation**: Tinted moisturizer\n"
-                     "- **Lipstick**: Lip balm or nude gloss\n"
-                     "- **Eyeliner**: None or light pencil\n"
-                     "- **Blush**: Subtle pink")
+        suggestions = {
+            "Office Day": "- **Foundation**: Matte, lightweight\n- **Lipstick**: Nude shades\n- **Eyeliner**: Minimalistic\n- **Blush**: Soft pink or peach",
+            "Cocktail Party": "- **Foundation**: High-coverage\n- **Lipstick**: Bold red or berry tones\n- **Eyeliner**: Winged or cat-eye\n- **Blush**: Rosy tones",
+            "Wedding": "- **Foundation**: Dewy finish\n- **Lipstick**: Deep red or maroon\n- **Eyeliner**: Heavy, bridal\n- **Blush**: Rich rose",
+            "Birthday Party": "- **Foundation**: Luminous\n- **Lipstick**: Coral or pink\n- **Eyeliner**: Glitter or metallic\n- **Blush**: Bright pink",
+            "Night Out": "- **Foundation**: High-definition\n- **Lipstick**: Dark plum or wine shades\n- **Eyeliner**: Smokey eyes\n- **Blush**: Darker peach",
+            "Casual Day": "- **Foundation**: Tinted moisturizer\n- **Lipstick**: Lip balm or nude gloss\n- **Eyeliner**: None or light pencil\n- **Blush**: Subtle pink",
+        }
+        st.write(suggestions[occasion])
 
-# Drag-and-Drop for Makeup Application
-st.markdown("<h3 class='subheader'>Upload Your Image</h3>", unsafe_allow_html=True)
-uploaded_file = st.file_uploader("Drag and drop or upload an image", type=["jpg", "jpeg", "png"])
+    # File upload for image
+    img_file_buffer = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
-if uploaded_file:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Image")
-
-    # Send image to backend for makeup application
-    st.markdown("<h4 class='occasion-title'>Applied Makeup Preview:</h4>", unsafe_allow_html=True)
-    
-    # Simulate backend processing (Replace with actual API call)
-    url = "http://backend-api-url/apply-makeup"  # Replace with your backend API endpoint
-    files = {"file": uploaded_file}
-    response = requests.post(url, files=files)
-    
-    if response.status_code == 200:
-        processed_image = Image.open(response.content)
-        st.image(processed_image, caption="Makeup Applied")
+    if img_file_buffer:
+        image = np.array(Image.open(img_file_buffer))
     else:
-        st.error("Failed to apply makeup. Please try again.")
+        image = np.array(Image.open(DEFAULT_IMAGE_PATH))
 
-# Footer
-st.markdown("<div class='footer'>Powered by Beauty Buzz AI 💄</div>", unsafe_allow_html=True)
+    st.subheader("Original Image")
+    st.image(image)
+
+    # Load model for parsing
+    cp = 'cp/79999_iter.pth'
+    ori = image.copy()
+    h, w, _ = ori.shape
+    image = cv2.resize(image, (1024, 1024))
+
+    parsing = evaluate(img_file_buffer if img_file_buffer else DEFAULT_IMAGE_PATH, cp)
+    parsing = cv2.resize(parsing, image.shape[0:2], interpolation=cv2.INTER_NEAREST)
+
+    # Get fixed parameters for the selected occasion
+    params = occasion_params[occasion]
+    hair_color = params["hair_color"]
+    lip_color = params["lip_color"]
+
+    # Apply makeup on button click
+    if st.button(f"Apply Makeup for {occasion}"):
+        table = {"hair": 17, "upper_lip": 12, "lower_lip": 13}
+        colors = [hair_color, lip_color, lip_color]
+
+        for part, color in zip(table.values(), colors):
+            image = hair(image, parsing, part, color)
+
+        image = cv2.resize(image, (w, h))
+        st.subheader("Transformed Image")
+        st.image(image)
+
+    # Footer with copyright information
+    st.markdown("<footer>© 2024 BeautyBuzz. All rights reserved.</footer>", unsafe_allow_html=True)
+
+# Run the occasions page rendering function
+render_occasions_page()
