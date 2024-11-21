@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 from PIL import Image
+import requests
 
 # Set page config
 st.set_page_config(page_title="Beauty Buzz - Occasions", page_icon="💄", layout="wide")
@@ -121,6 +122,28 @@ if occasion:
                      "- **Lipstick**: Lip balm or nude gloss\n"
                      "- **Eyeliner**: None or light pencil\n"
                      "- **Blush**: Subtle pink")
+
+# Drag-and-Drop for Makeup Application
+st.markdown("<h3 class='subheader'>Upload Your Image</h3>", unsafe_allow_html=True)
+uploaded_file = st.file_uploader("Drag and drop or upload an image", type=["jpg", "jpeg", "png"])
+
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+    # Send image to backend for makeup application
+    st.markdown("<h4 class='occasion-title'>Applied Makeup Preview:</h4>", unsafe_allow_html=True)
+    
+    # Simulate backend processing (Replace with actual API call)
+    url = "http://backend-api-url/apply-makeup"  # Replace with your backend API endpoint
+    files = {"file": uploaded_file}
+    response = requests.post(url, files=files)
+    
+    if response.status_code == 200:
+        processed_image = Image.open(response.content)
+        st.image(processed_image, caption="Makeup Applied", use_column_width=True)
+    else:
+        st.error("Failed to apply makeup. Please try again.")
 
 # Footer
 st.markdown("<div class='footer'>Powered by Beauty Buzz AI 💄</div>", unsafe_allow_html=True)
