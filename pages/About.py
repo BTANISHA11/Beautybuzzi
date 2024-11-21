@@ -91,22 +91,7 @@ st.markdown("<div class='mission-section'><h2 class='mission-title'>Our Mission<
 # Team Section
 st.markdown("<div class='team-section'><h2 class='team-title'>Meet the Team</h2><p class='about-content'>We are a diverse group of tech enthusiasts, beauty aficionados, and AI innovators, working together to bring Beauty Buzz to life. Our team is passionate about creating products that enhance the beauty experience and make it accessible to everyone. Here's a glimpse of the amazing people behind Beauty Buzz:</p></div>", unsafe_allow_html=True)
 
-# # Team Members Section (example members)
-# team_members = [
-#     {"name": "Tanisha Bansal", "role": "CEO & Co-Founder", "image": "./imgs/team1.jpg"},
-#     {"name": "Arya Kumari", "role": "CTO & Co-Founder", "image": "./imgs/team2.jpg"},
-#     {"name": "Ankit Bhardwaj", "role": "Lead AI Engineer", "image": "./imgs/team3.jpg"},
-#     {"name": "Shashank Kumar Gupta", "role": "Lead Developer", "image": "./imgs/team4.jpg"}
-# ]
 
-# Display Team Members using st.columns()
-# columns = st.columns(len(team_members))  # Automatically creates the required number of columns
-# for idx, member in enumerate(team_members):
-#     col = columns[idx]
-#     img = Image.open(member['image'])
-#     col.image(img, use_column_width=True)
-#     col.markdown(f"### {member['name']}")
-#     col.markdown(f"*{member['role']}*")
 
 # Footer
 st.markdown("<footer>Powered by Beauty Buzz AI 💄 | All Rights Reserved</footer>", unsafe_allow_html=True)
