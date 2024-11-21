@@ -1,6 +1,9 @@
 # face-makeup.PyTorch
 Lip and hair color editor using face parsing maps.
 
+### Command to run the project:
+    streamlit run app.py
+
 <table>
 
 <tr>
