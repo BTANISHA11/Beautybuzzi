@@ -1,119 +1,89 @@
 import streamlit as st
 
-# Must be the first command in the script
-st.set_page_config(layout="wide", page_title="Healthcare")
+# Set page configuration
+st.set_page_config(page_title="Healthcare", page_icon="🩺", layout="wide")
 
 def render_healthcare_page():
-    # Add CSS for custom styling with hover effect
+    # Add custom CSS for styling
     st.markdown(
         """
         <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: "Arial", sans-serif;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.8em;
+            color: #5a189a;
+            margin-bottom: 20px;
+        }
         .big-square {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);  # 4 equal columns
-            grid-template-rows: repeat(3, 1fr);     # 3 equal rows
-            gap: 10px !important;
-            
-            width: 100%;
-            height: 100vh;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+            gap: 20px;
+            padding: 20px;
         }
         .box {
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            text-align: center;
+            background: linear-gradient(135deg, #6a4c93, #b5179e);
             color: white;
-            transition: transform 0.3s, background 0.3s;
-            background-size: cover;
-            background-position: center;
-            height: 100%;
-      
-        }
-        .box1 {
-        margin:10px;
-            grid-column: 1 / 3;
-            grid-row: 1 / 2;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
-        }
-        .box2 {
-        margin:10px;
-            grid-column: 3 / 4;
-            grid-row: 1 / 2;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
-        }
-        .box3 {
-        margin:10px;
-            grid-column: 1 / 2;
-            grid-row: 2 / 3;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
-        }
-        .box4 {
-        margin:10px;
-            grid-column: 2 / 3;
-            grid-row: 2 / 3;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
-        }
-        .box5 {
-        margin:10px;
-            grid-column: 3 / 4;
-            grid-row: 2 / 3;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
-        }
-        .box6 {
-        margin:10px;
-            grid-column: 1 / 3;
-            grid-row: 3 / 4;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
-        }
-        .box7 {
-        margin:10px;
-            grid-column: 3 / 4;
-            grid-row: 3 / 4;
-            background: rgba(0, 0, 0, 0.5);  # Replace with your image URL
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .box:hover {
-            background: rgba(0, 0, 0, 0.5);  # Adding a dark overlay on hover
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .box h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .box p {
+            font-size: 1em;
+            line-height: 1.6em;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    # Add the HTML structure for the grid layout
+    # Header
+    st.markdown("<h1>Healthcare Features</h1>", unsafe_allow_html=True)
+
+    # Features grid
     st.markdown(
         """
-        <div><h1>HEALTHCARE</h1></div>
         <div class="big-square">
-            <div class="box box1">
+            <div class="box">
                 <h3>Skincare Tips</h3>
-                <p>Explore tips for achieving better skin health and maintaining a glowing complexion.</p>
+                <p>Discover expert tips to maintain glowing, healthy skin through proper care and lifestyle changes.</p>
             </div>
-            <div class="box box2">
+            <div class="box">
                 <h3>AI Skin Analysis</h3>
-                <p>Leverage AI to understand your skin better and get tailored insights.</p>
+                <p>Get personalized skin insights with our AI-powered analysis tool, tailored to your unique needs.</p>
             </div>
-            <div class="box box3">
+            <div class="box">
                 <h3>Product Recommendations</h3>
-                <p>Receive personalized product suggestions to match your unique skin needs.</p>
+                <p>Receive custom recommendations for skincare products that suit your skin type and goals.</p>
             </div>
-            <div class="box box4">
+            <div class="box">
                 <h3>Healthy Diet</h3>
-                <p>Learn about the foods that promote healthy skin and a healthy body.</p>
+                <p>Learn how balanced nutrition promotes radiant skin and overall well-being.</p>
             </div>
-            <div class="box box5">
+            <div class="box">
                 <h3>Skincare Routine</h3>
-                <p>Understand the importance of a consistent skincare routine for lasting results.</p>
+                <p>Develop an effective skincare routine with step-by-step guidance for optimal results.</p>
             </div>
-            <div class="box box6">
+            <div class="box">
                 <h3>Consultations</h3>
-                <p>Book a consultation with a skincare expert to receive personalized advice.</p>
+                <p>Book a session with certified skincare experts for personalized advice and treatment plans.</p>
             </div>
-            <div class="box box7">
+            <div class="box">
                 <h3>Customer Testimonials</h3>
-                <p>See how our products have worked wonders for others and join the community.</p>
+                <p>Read inspiring success stories from our satisfied users and join the thriving community.</p>
             </div>
         </div>
         """,
