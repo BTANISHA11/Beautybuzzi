@@ -1,141 +1,112 @@
 import streamlit as st
+from PIL import Image
 
 # Set page configuration
-st.set_page_config(layout="wide", page_title="About Us")
+st.set_page_config(page_title="Beauty Buzz - About Us", page_icon="💄", layout="wide")
 
-def render_about_page():
-   # Adding CSS styles for the containers
-    st.markdown(
-        """
-        <style>
-        .feature-box {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 10px 0;
-            background-color: #f9f9f9;
-            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .feature-line {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .feature-line img {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-        }
-        /* Alternate the layout for each feature */
-        .feature-line:nth-child(even) {
-            flex-direction: row-reverse; /* Reverse the order for even elements */
-        }
-        .feature-line h4 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .feature-line p {
-            margin: 5px 0;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+# Custom CSS
+custom_css = """
+<style>
+body {
+    background-color: #f8f9fa;
+    font-family: "Arial", sans-serif;
+}
 
-    st.markdown(
-        """
-        <div class="feature-box">
-            <h4>FEATURES</h4>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+.header {
+    text-align: center;
+    font-size: 3.5em;
+    color: #d63384;
+    margin-top: 30px;
+}
 
-    # Adding container-like boxes for each feature
-    with st.container():
-        # First Feature - Image on the left, Text on the right
-        st.markdown(
-            """
-            <div class="feature-line">
-            """,
-            unsafe_allow_html=True,
-        )
-        st.image("./imgs/hero4.png", use_column_width=False)
-        st.markdown(
-            """
-            <div>
-                <h4>AI-powered Makeup Application</h4>
-                <p>Leverage advanced AI technology to apply virtual makeup effortlessly.</p>
-            </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+.subheader {
+    font-size: 1.8em;
+    color: #6f42c1;
+    margin-bottom: 30px;
+    text-align: center;
+}
 
-        st.markdown("<hr/>", unsafe_allow_html=True)
+.about-content {
+    font-size: 1.2em;
+    color: #495057;
+    line-height: 1.8em;
+    margin-bottom: 30px;
+}
 
-        # Second Feature - Image on the right, Text on the left (alternate order)
-        st.markdown(
-            """
-            <div class="feature-line">
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            """
-            <div>
-                <h4>Virtual Try-On for Lips, Hair, and Foundation</h4>
-                <p>Experiment with different shades and styles virtually before committing to a look.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.image("./imgs/img3.png", width=60, height=60)
-        st.markdown("</div>", unsafe_allow_html=True)
+.mission-section, .team-section {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+}
 
-        st.markdown("<hr/>", unsafe_allow_html=True)
+.mission-title, .team-title {
+    font-size: 2em;
+    color: #495057;
+    margin-bottom: 15px;
+}
 
-        # Third Feature - Image on the left, Text on the right
-        st.markdown(
-            """
-            <div class="feature-line">
-            """,
-            unsafe_allow_html=True,
-        )
-        st.image("./imgs/hero4.png", use_column_width=False)
-        st.markdown(
-            """
-            <div>
-                <h4>Customizable Parameters for Shades</h4>
-                <p>Fine-tune your makeup shades to match your unique preferences.</p>
-            </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+.team-members {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
 
-        st.markdown("<hr/>", unsafe_allow_html=True)
+.team-member {
+    text-align: center;
+    margin: 10px;
+}
 
-        # Fourth Feature - Image on the right, Text on the left (alternate order)
-        st.markdown(
-            """
-            <div class="feature-line">
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            """
-            <div>
-                <h4>Save and Share Your Favorite Looks</h4>
-                <p>Keep a record of your favorite styles and share them with friends.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.image("./imgs/hero6.jpg", width=60, height=60)
-        st.markdown("</div>", unsafe_allow_html=True)
+.team-member img {
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 10px;
+}
 
-# Call the function to render the page
-render_about_page()
+footer {
+    text-align: center;
+    font-size: 1.2em;
+    color: #868e96;
+    margin-top: 50px;
+}
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# App Header
+st.markdown("<h1 class='header'>💄 Welcome to Beauty Buzz</h1>", unsafe_allow_html=True)
+st.write("")
+
+# Subheader
+st.markdown("<h3 class='subheader'>Empowering You to Explore the World of Beauty with AI-Powered Virtual Makeup Try-On</h3>", unsafe_allow_html=True)
+
+# About Us Section
+st.markdown("<p class='about-content'>Beauty Buzz is revolutionizing the beauty industry with cutting-edge technology, offering a seamless virtual makeup experience. Our platform allows users to experiment with various makeup styles and shades in real-time using their own face, providing the perfect makeup solution for every occasion. From virtual try-ons to personalized recommendations, Beauty Buzz is designed to empower individuals to express their unique beauty with confidence.</p>", unsafe_allow_html=True)
+
+# Mission Section
+st.markdown("<div class='mission-section'><h2 class='mission-title'>Our Mission</h2><p class='about-content'>At Beauty Buzz, our mission is to bridge the gap between technology and beauty. By leveraging artificial intelligence, computer vision, and machine learning, we aim to provide a more personalized and accessible beauty experience. Our goal is to help individuals discover the best makeup products and styles that align with their unique preferences and personalities, making beauty fun, easy, and inclusive.</p></div>", unsafe_allow_html=True)
+
+# Team Section
+st.markdown("<div class='team-section'><h2 class='team-title'>Meet the Team</h2><p class='about-content'>We are a diverse group of tech enthusiasts, beauty aficionados, and AI innovators, working together to bring Beauty Buzz to life. Our team is passionate about creating products that enhance the beauty experience and make it accessible to everyone. Here's a glimpse of the amazing people behind Beauty Buzz:</p></div>", unsafe_allow_html=True)
+
+# Team Members Section (example members)
+team_members = [
+    {"name": "Tanisha Bansal", "role": "CEO & Co-Founder", "image": "./imgs/team1.jpg"},
+    {"name": "Arya Kumari", "role": "CTO & Co-Founder", "image": "./imgs/team2.jpg"},
+    {"name": "Ankit Bhardwaj", "role": "Lead AI Engineer", "image": "./imgs/team3.jpg"},
+    {"name": "Shashank Kumar Gupta", "role": "Lead Developer", "image": "./imgs/team4.jpg"}
+]
+
+# Display Team Members using st.columns()
+columns = st.columns(len(team_members))  # Automatically creates the required number of columns
+for idx, member in enumerate(team_members):
+    col = columns[idx]
+    img = Image.open(member['image'])
+    col.image(img, use_column_width=True)
+    col.markdown(f"### {member['name']}")
+    col.markdown(f"*{member['role']}*")
+
+# Footer
+st.markdown("<footer>Powered by Beauty Buzz AI 💄 | All Rights Reserved</footer>", unsafe_allow_html=True)
