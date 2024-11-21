@@ -8,7 +8,7 @@ from PIL import Image, ImageColor
 
 def sharpen(img):
     img = img * 1.0
-    gauss_out = gaussian(img, sigma=5, multichannel=True)
+    gauss_out = gaussian(img, sigma=5, channel_axis=-1)
 
     alpha = 1.5
     img_out = (img - gauss_out) * alpha + img
@@ -120,3 +120,4 @@ image = cv2.resize(image,(w,h))
 st.subheader('Output Image')
 
 st.image(image,use_column_width = True)
+
