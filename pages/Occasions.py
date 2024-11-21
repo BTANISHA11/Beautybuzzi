@@ -82,7 +82,7 @@ if occasion:
         
         # Display occasion image
         image = Image.open(os.path.join(image_folder, image_mapping[occasion]))
-        st.image(image, caption=f"{occasion} Look", use_column_width=True)
+        st.image(image, caption=f"{occasion} Look")
 
     with col2:
         st.markdown(f"<h4 class='occasion-title'>{occasion} Makeup Suggestions:</h4>", unsafe_allow_html=True)
@@ -129,7 +129,7 @@ uploaded_file = st.file_uploader("Drag and drop or upload an image", type=["jpg"
 
 if uploaded_file:
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="Uploaded Image")
 
     # Send image to backend for makeup application
     st.markdown("<h4 class='occasion-title'>Applied Makeup Preview:</h4>", unsafe_allow_html=True)
@@ -141,7 +141,7 @@ if uploaded_file:
     
     if response.status_code == 200:
         processed_image = Image.open(response.content)
-        st.image(processed_image, caption="Makeup Applied", use_column_width=True)
+        st.image(processed_image, caption="Makeup Applied")
     else:
         st.error("Failed to apply makeup. Please try again.")
 

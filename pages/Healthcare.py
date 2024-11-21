@@ -9,42 +9,51 @@ def render_healthcare_page():
         """
         <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f9f9f9;
             font-family: "Arial", sans-serif;
         }
         h1 {
             text-align: center;
-            font-size: 2.8em;
-            color: #5a189a;
-            margin-bottom: 20px;
+            font-size: 2.5em;
+            color: #4a4a4a;
+            margin-bottom: 30px;
+            font-weight: bold;
         }
         .big-square {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
             gap: 20px;
             padding: 20px;
         }
         .box {
-            border-radius: 12px;
-            padding: 20px;
-            background: linear-gradient(135deg, #6a4c93, #b5179e);
-            color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            background-color: #ffffff;
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            cursor: pointer; /* Change cursor to pointer */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .box:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
         .box h3 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
+            font-size: 1.4em;
+            color: #2a2a2a;
+            margin-bottom: 15px;
+            font-weight: 600;
         }
         .box p {
             font-size: 1em;
+            color: #6c757d;
             line-height: 1.6em;
+        }
+        a {
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: none;
         }
         </style>
         """,
@@ -94,7 +103,6 @@ def render_healthcare_page():
                     <p>Book a session with certified skincare experts for personalized advice and treatment plans.</p>
                 </div>
             </a>
-            
         </div>
         """,
         unsafe_allow_html=True,

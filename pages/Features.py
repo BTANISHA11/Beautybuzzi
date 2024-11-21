@@ -1,5 +1,5 @@
-import os
 import streamlit as st
+import os
 
 # Set page configuration
 st.set_page_config(page_title="Beauty Buzz - Features", page_icon="✨", layout="wide")
@@ -8,116 +8,217 @@ st.set_page_config(page_title="Beauty Buzz - Features", page_icon="✨", layout=
 custom_css = """
 <style>
 body {
-    background-color: #f8f9fa;
+    background-color: #f9ccd3; /* Light pinkish background */
     font-family: "Arial", sans-serif;
 }
 
-.header {
+.features-container {
     text-align: center;
-    font-size: 3em;
-    color: #d63384;
-    margin-top: 20px;
+    padding: 50px 20px;
+    color: #333;
+    position: relative;
+    overflow: hidden;
 }
 
-.subheader {
-    font-size: 1.5em;
-    color: #6f42c1;
+.features-title {
+    font-size: 2.5rem;
+    font-weight: bold;
     margin-bottom: 30px;
-    text-align: center;
+    color: #aa1945; /* Rose Red color */
 }
 
-.feature-box {
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+/* Center Images Layout */
+.features-images {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    height: 500px;
+    margin: 0 auto;
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
 }
 
-.feature-title {
-    font-size: 1.5em;
-    color: #495057;
+.image-item {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Shapes and Sizes */
+.circle, .large-rect, .small-rect, .small-circle, .medium-square {
+    position: absolute;
+    z-index: -1;
+}
+
+.circle {
+    width: 250px;
+    height: 250px;
+    top: -20%;
+    left: -10%;
+}
+
+.large-rect {
+    width: 300px;
+    height: 500px;
+    top: 80px;
+    left: 40%;
+}
+
+.small-rect {
+    width: 220px;
+    height: 250px;
+    top: 200px;
+    left: 98%;
+}
+
+.small-circle {
+    width: 200px;
+    height: 150px;
+    top: 320px;
+    left: 5%;
+}
+
+.medium-square {
+    width: 250px;
+    height: 180px;
+    top: 0;
+    left: 95%;
+}
+
+/* Feature Descriptions */
+.features-text {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+}
+
+.text-item {
+    max-width: 250px;
+    text-align: left;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.text-item h2 {
+    font-size: 1.5rem;
+    color: #391306; /* Puce color */
     margin-bottom: 10px;
 }
 
-.feature-description {
-    font-size: 1em;
-    color: #6c757d;
-    line-height: 1.5em;
+.text-item p {
+    font-size: 1.2rem; /* Bigger font size */
+    color: #555; /* Grey color */
+    line-height: 1.8; /* Increased line spacing */
 }
 
-.footer {
-    text-align: center;
-    margin-top: 50px;
-    font-size: 1.2em;
-    color: #868e96;
+/* Styling Numbers */
+.text-item::before {
+    content: attr(data-number);
+    font-size: 5rem; /* Bigger size for numbers */
+    font-weight: bold;
+    color: #aa1945; /* Rose Red */
+    position: absolute;
+    top: -40px;
+    left: -20px;
+    z-index: -1;
+}
+
+@media (max-width: 768px) {
+    .features-images {
+        width: 100%;
+        height: auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        position: relative;
+    }
+
+    .image-item {
+        position: relative;
+        margin: auto;
+    }
+
+    .features-text {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .text-item {
+        text-align: center;
+        margin: 20px 0;
+    }
 }
 </style>
+
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# App Header
-st.markdown("<h1 class='header'>✨ Beauty Buzz: App Features ✨</h1>", unsafe_allow_html=True)
-st.write("")
+# Header
+st.markdown("<h1 class='features-title'>Our Features</h1>", unsafe_allow_html=True)
 
-# Subheader
-st.markdown("<h3 class='subheader'>Discover the cutting-edge features that make Beauty Buzz your ultimate virtual makeup companion!</h3>", unsafe_allow_html=True)
+# Image Group
+st.markdown("<div class='features-images'>", unsafe_allow_html=True)
+images = [
+    {"src": "https://via.placeholder.com/150", "class": "circle"},
+    {"src": "https://via.placeholder.com/300x400", "class": "large-rect"},
+    {"src": "https://via.placeholder.com/200x250", "class": "small-rect"},
+    {"src": "https://via.placeholder.com/150", "class": "circle"},
+    {"src": "https://via.placeholder.com/150", "class": "circle"}
+]
 
-# Features List
+for img in images:
+    st.markdown(f"""
+    <div class='image-item {img['class']}'>
+        <img src="{img['src']}" alt="Feature Image">
+    </div>
+    """, unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Feature Text
+st.markdown("<div class='features-text'>", unsafe_allow_html=True)
 features = [
     {
-        "title": "Real-Time Makeup Try-On",
-        "description": "Experiment with different makeup styles instantly using your live camera feed. Explore lipstick, blush, eyeliner, foundation, and hair colors applied virtually.",
-        "image": "skincare.jpg.jpg"
+        "title": "1 Real-Time Makeup Try-On",
+        "description": "Experiment with different makeup styles instantly using your live camera feed."
     },
     {
-        "title": "Occasion-Specific Suggestions",
-        "description": "Receive personalized makeup recommendations for office days, weddings, cocktail parties, and more. Choose the perfect look for every occasion.",
-        "image": "skincare.jpg.jpg"
+        "title": "2 Occasion-Specific Suggestions",
+        "description": "Receive personalized makeup recommendations for every occasion."
     },
     {
-        "title": "Advanced Makeup Filters",
-        "description": "Filter products by price, brand, and occasion to find the ideal beauty products that suit your style and budget.",
-        "image": "skincare.jpg.jpg"
+        "title": "3 Advanced Makeup Filters",
+        "description": "Filter products by price, brand, and occasion to find your ideal match."
     },
     {
-        "title": "AI-Powered Realism",
-        "description": "Leverages CNNs and OpenCV to apply makeup styles with precision, ensuring natural-looking results while preserving your facial features.",
-        "image": "skincare.jpg.jpg"
-    },
-    {
-        "title": "Multi-Brand Product Integration",
-        "description": "Browse and select makeup products from top beauty brands, with links to purchase them directly from e-commerce platforms.",
-        "image": "skincare.jpg.jpg"
-    },
-    {
-        "title": "Customizable Shades",
-        "description": "Customize shades of lipstick, blush, and more to match your preferences and experiment with bold or subtle looks.",
-        "image": "skincare.jpg.jpg"
-    },
-    {
-        "title": "Virtual Camera Feature",
-        "description": "Use the built-in camera feature to capture your look and compare styles before making a purchase decision.",
-        "image": "skincare.jpg.jpg"
+        "title": "4 AI-Powered Realism",
+        "description": "Leverage AI to apply makeup styles with precision and natural-looking results."
     }
 ]
 
-# Display Features
-for feature in features:
-    st.markdown(f"<div class='feature-box'>", unsafe_allow_html=True)
-    col1, col2 = st.columns([1, 3])  # Adjust column widths
-    with col1:
-        if os.path.exists(feature["image"]):
-            st.image(feature["image"], use_column_width=True, caption=feature["title"])
-        else:
-            st.image("https://via.placeholder.com/150", use_column_width=True, caption="Image not available")
-    with col2:
-        st.markdown(f"<h2 class='feature-title'>{feature['title']}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p class='feature-description'>{feature['description']}</p>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# Footer
-st.markdown("<div class='footer'>Powered by Beauty Buzz AI 💄</div>", unsafe_allow_html=True)
+for idx, feature in enumerate(features, 1):
+    st.markdown(f"""
+        <div class="features-text>
+                <div class='text-item' data-number="{idx}">
+                   <h2 class="darkcolor">{feature['title']}</h2>
+                   <p>{feature['description']}</p>
+                   <hr/>
+                </div>
+        </div>
+    
+    """, unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)

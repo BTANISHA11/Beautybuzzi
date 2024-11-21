@@ -84,7 +84,7 @@ def render_home_page():
     new_image = image.copy()
 
     st.subheader('Original Image')
-    st.image(image, use_column_width=True)
+    st.image(image)
 
     # Load model for parsing
     cp = 'cp/79999_iter.pth'
@@ -112,7 +112,7 @@ def render_home_page():
         image = cv2.resize(image, (w, h))
 
         st.subheader('Output Image')
-        st.image(image, use_column_width=True)
+        st.image(image)
 
     # Footer with copyright information
     st.markdown("<footer>© 2024 BeautyBuzz. All rights reserved.</footer>", unsafe_allow_html=True)
