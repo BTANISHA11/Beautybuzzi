@@ -1,79 +1,116 @@
 import streamlit as st
 
-def render_features_page():
-    # Adding CSS styles for the containers
-    st.markdown(
-        """
-        <style>
-        .feature-box {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 10px 0;
-            background-color: #f9f9f9;
-            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .feature-line {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .feature-line img {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+# Set page configuration
+st.set_page_config(page_title="Beauty Buzz - Features", page_icon="✨", layout="wide")
 
-    st.markdown(
-        """
-        <div class="feature-box">
-            <h4>FEATURES</h4>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+# Custom CSS
+custom_css = """
+<style>
+body {
+    background-color: #f8f9fa;
+    font-family: "Arial", sans-serif;
+}
 
-    # Adding container-like boxes for each feature
-    with st.container():
-        st.markdown(
-            """
-            <div class="feature-box">
-                <div class="feature-line">
-                    <img src="./imgs/img3.png" alt="AI-powered Makeup">
-                    <div>
-                        <h4>AI-powered Makeup Application</h4>
-                        <p>Leverage advanced AI technology to apply virtual makeup effortlessly.</p>
-                    </div>
-                </div>
-                <hr/>
-                <div class="feature-line">
-                    <img src="../imgs/img3.png" alt="Virtual Try-On">
-                    <div>
-                        <h4>Virtual Try-On for Lips, Hair, and Foundation</h4>
-                        <p>Experiment with different shades and styles virtually before committing to a look.</p>
-                    </div>
-                </div>
-                <hr/>
-                <div class="feature-line">
-                    <img src="../imgs/img (1).png" alt="Customizable Parameters">
-                    <div>
-                        <h4>Customizable Parameters for Shades</h4>
-                        <p>Fine-tune your makeup shades to match your unique preferences.</p>
-                    </div>
-                </div>
-                <hr/>
-                <div class="feature-line">
-                    <img src="https://via.placeholder.com/60" alt="Save and Share">
-                    <div>
-                        <h4>Save and Share Your Favorite Looks</h4>
-                        <p>Keep a record of your favorite styles and share them with friends.</p>
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+.header {
+    text-align: center;
+    font-size: 3em;
+    color: #d63384;
+    margin-top: 20px;
+}
+
+.subheader {
+    font-size: 1.5em;
+    color: #6f42c1;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.feature-box {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.feature-title {
+    font-size: 1.5em;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.feature-description {
+    font-size: 1em;
+    color: #6c757d;
+    line-height: 1.5em;
+}
+
+footer {
+    text-align: center;
+    font-size: 1em;
+    color: #adb5bd;
+    margin-top: 50px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 1.2em;
+    color: #868e96;
+}
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# App Header
+st.markdown("<h1 class='header'>✨ Beauty Buzz: App Features ✨</h1>", unsafe_allow_html=True)
+st.write("")
+
+# Subheader
+st.markdown("<h3 class='subheader'>Discover the cutting-edge features that make Beauty Buzz your ultimate virtual makeup companion!</h3>", unsafe_allow_html=True)
+
+# Features List
+features = [
+    {
+        "title": "Real-Time Makeup Try-On",
+        "description": "Experiment with different makeup styles instantly using your live camera feed. Explore lipstick, blush, eyeliner, foundation, and hair colors applied virtually."
+    },
+    {
+        "title": "Occasion-Specific Suggestions",
+        "description": "Receive personalized makeup recommendations for office days, weddings, cocktail parties, and more. Choose the perfect look for every occasion."
+    },
+    {
+        "title": "Advanced Makeup Filters",
+        "description": "Filter products by price, brand, and occasion to find the ideal beauty products that suit your style and budget."
+    },
+    {
+        "title": "AI-Powered Realism",
+        "description": "Leverages CNNs and OpenCV to apply makeup styles with precision, ensuring natural-looking results while preserving your facial features."
+    },
+    {
+        "title": "Multi-Brand Product Integration",
+        "description": "Browse and select makeup products from top beauty brands, with links to purchase them directly from e-commerce platforms."
+    },
+    {
+        "title": "Customizable Shades",
+        "description": "Customize shades of lipstick, blush, and more to match your preferences and experiment with bold or subtle looks."
+    },
+    {
+        "title": "Virtual Camera Feature",
+        "description": "Use the built-in camera feature to capture your look and compare styles before making a purchase decision."
+    }
+]
+
+# Display Features
+for feature in features:
+    st.markdown(f"""
+    <div class='feature-box'>
+        <h2 class='feature-title'>{feature['title']}</h2>
+        <p class='feature-description'>{feature['description']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Footer
+st.markdown("<div class='footer'>Powered by Beauty Buzz AI 💄</div>", unsafe_allow_html=True)
