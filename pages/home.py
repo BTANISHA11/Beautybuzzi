@@ -59,7 +59,7 @@ def render_home_page():
     add_custom_css()
 
     # Title and Description
-    st.title('Virtual Makeup Application')
+    st.title('Virtual Makeup Application 💄')
     st.markdown("""
         **Welcome to Beauty Buzz!**  
         Use our AI-powered makeup tool to transform your look. Upload an image, select your desired hair and lip colors, and let the magic happen!
