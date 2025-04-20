@@ -5,6 +5,8 @@ from skimage.filters import gaussian
 from test import evaluate
 import streamlit as st
 from PIL import Image, ImageColor
+from recommend_hairstyle import get_face_shape, recommend_hairstyle, apply_hairstyle_overlay
+
 
 # ----------------- Image Processing Functions ------------------ #
 
@@ -50,6 +52,7 @@ def apply_hairstyle_overlay(base_image, hairstyle_path):
         st.warning(f"Error applying hairstyle: {e}")
         return base_image
 
+
 # ----------------- Streamlit App ------------------ #
 
 st.set_page_config(layout="wide")
@@ -92,20 +95,31 @@ colors = [hair_color, lip_color, lip_color]
 for part, color in zip(parts, colors):
     image = apply_makeup(image, parsing, part, color)
 
-# # Hairstyle selection
-# st.sidebar.markdown("### 💇 Select Hairstyle Overlay")
+# ----------------- Hairstyle Recommendation ------------------ #
 
-# try:
-#     hairstyles = sorted([f for f in os.listdir(HAIRSTYLE_DIR) if f.endswith('.png')])
-#     selected_hairstyle = st.sidebar.selectbox("Choose Hairstyle", ["None"] + hairstyles)
+if st.sidebar.button("🎯 Recommend Best Hairstyle"):
+    face_shape = get_face_shape(original_image)
+    recommended_file = recommend_hairstyle(face_shape)
+    st.sidebar.write(f"Detected face shape: **{face_shape}**")
+    if recommended_file:
+        st.sidebar.success(f"Recommended hairstyle: {recommended_file}")
+        image = apply_hairstyle_overlay(image, os.path.join("hairstyles", recommended_file))
+    else:
+        st.sidebar.warning("No recommendation found.")
 
-#     if selected_hairstyle != "None":
-#         image = apply_hairstyle_overlay(image, os.path.join(HAIRSTYLE_DIR, selected_hairstyle))
-# except FileNotFoundError:
-#     st.warning("Hairstyle folder not found! Please create a 'hairstyles/' folder with PNG files.")
+# ----------------- Auto-Apply Hairstyle ------------------ #
 
-# Resize final output back to original dimensions
-image = cv2.resize(image, (w, h))
+if st.sidebar.button("🎯 Recommend & Apply Best Hairstyle"):
+    face_shape = get_face_shape(original_image)
+    st.sidebar.write(f"🧠 Detected Face Shape: **{face_shape}**")
+
+    recommended_file = recommend_hairstyle(face_shape)
+    if recommended_file:
+        st.sidebar.success(f"✨ Recommended Hairstyle: `{recommended_file}`")
+        hairstyle_path = os.path.join(HAIRSTYLE_DIR, recommended_file)
+        image = apply_hairstyle_overlay(image, hairstyle_path)
+    else:
+        st.sidebar.warning("❌ No suitable hairstyle found.")
 
 # ----------------- Display Side by Side ------------------ #
 col1, col2 = st.columns(2)
