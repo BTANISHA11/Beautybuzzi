@@ -1,68 +1,20 @@
 import cv2
 import os
 import numpy as np
-from skimage.filters import gaussian
-from test import evaluate
-import streamlit as st
 from PIL import Image, ImageColor
+import streamlit as st
+from test import evaluate
 from recommend_hairstyle import get_face_shape, recommend_hairstyle, apply_hairstyle_overlay
-
-
-# ----------------- Image Processing Functions ------------------ #
-
-def sharpen(img):
-    img = img * 1.0
-    gauss_out = gaussian(img, sigma=5, channel_axis=-1)
-    alpha = 1.5
-    img_out = (img - gauss_out) * alpha + img
-    img_out = np.clip(img_out / 255.0, 0, 1) * 255
-    return np.array(img_out, dtype=np.uint8)
-
-def apply_makeup(image, parsing, part=17, color=[230, 50, 20]):
-    b, g, r = color
-    tar_color = np.zeros_like(image)
-    tar_color[:, :, 0], tar_color[:, :, 1], tar_color[:, :, 2] = b, g, r
-
-    image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    tar_hsv = cv2.cvtColor(tar_color, cv2.COLOR_BGR2HSV)
-
-    if part in [12, 13]:
-        image_hsv[:, :, 0:2] = tar_hsv[:, :, 0:2]
-    else:
-        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
-
-    changed = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2BGR)
-    if part == 17:
-        changed = sharpen(changed)
-
-    changed[parsing != part] = image[parsing != part]
-    return changed
-
-def apply_hairstyle_overlay(base_image, hairstyle_path):
-    try:
-        overlay = cv2.imread(hairstyle_path, cv2.IMREAD_UNCHANGED)
-        overlay = cv2.resize(overlay, (base_image.shape[1], base_image.shape[0]))
-
-        if overlay.shape[2] == 4:
-            alpha = overlay[:, :, 3] / 255.0
-            for c in range(3):
-                base_image[:, :, c] = base_image[:, :, c] * (1 - alpha) + overlay[:, :, c] * alpha
-        return base_image.astype(np.uint8)
-    except Exception as e:
-        st.warning(f"Error applying hairstyle: {e}")
-        return base_image
-
-
-# ----------------- Streamlit App ------------------ #
+from makeup import apply_makeup, apply_region_blend
 
 st.set_page_config(layout="wide")
-st.title('💄 Virtual Makeup + Hairstyle Try-On App')
+st.title('💄 Virtual Makeup + Hairstyle + Foundation Try-On App')
 
 st.sidebar.title('🎨 Customization Panel')
-st.sidebar.markdown("Upload a face image and apply makeup and hairstyle overlays.")
+st.sidebar.markdown("Upload an image and apply hair color, lipstick, foundation, and hairstyle.")
 
 DEMO_IMAGE = 'imgs/116.jpg'
-HAIRSTYLE_DIR = 'hairstyles/'  # ensure this folder exists
+HAIRSTYLE_DIR = 'hairstyles/'
 
 # Upload image
 img_file_buffer = st.sidebar.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
@@ -75,40 +27,34 @@ else:
 
 original_image = image.copy()
 ori = original_image.copy()
-h, w, _ = ori.shape
 image = cv2.resize(image, (1024, 1024))
 
-# Evaluate parsing mask
+# Parsing with pre-trained model
 cp = 'cp/79999_iter.pth'
 parsing = evaluate(demo_image, cp)
 parsing = cv2.resize(parsing, image.shape[0:2], interpolation=cv2.INTER_NEAREST)
 
-# Color selections
+# Color pickers
 hair_color = st.sidebar.color_picker('🖌️ Hair Color', '#000000')
 lip_color = st.sidebar.color_picker('💋 Lip Color', '#edbad1')
+foundation_color = st.sidebar.color_picker('🧴 Foundation Color (full face)', '#f4c2c2')
+
 hair_color = ImageColor.getcolor(hair_color, "RGB")
 lip_color = ImageColor.getcolor(lip_color, "RGB")
+foundation_color = ImageColor.getcolor(foundation_color, "RGB")
 
-parts = [17, 12, 13]
-colors = [hair_color, lip_color, lip_color]
-
-for part, color in zip(parts, colors):
+# Apply hair and lips
+for part, color in zip([17, 12, 13], [hair_color, lip_color, lip_color]):
     image = apply_makeup(image, parsing, part, color)
 
-# ----------------- Hairstyle Recommendation ------------------ #
+# Apply foundation to entire face area (part 1 includes nose)
+# Apply foundation to full face including nose, brows, jaw
+face_parts = [1, 2, 3, 10, 11]
+foundation_mask = np.isin(parsing, face_parts)
+image = apply_region_blend(image, foundation_mask, foundation_color, alpha=0.35)
 
-if st.sidebar.button("🎯 Recommend Best Hairstyle"):
-    face_shape = get_face_shape(original_image)
-    recommended_file = recommend_hairstyle(face_shape)
-    st.sidebar.write(f"Detected face shape: **{face_shape}**")
-    if recommended_file:
-        st.sidebar.success(f"Recommended hairstyle: {recommended_file}")
-        image = apply_hairstyle_overlay(image, os.path.join("hairstyles", recommended_file))
-    else:
-        st.sidebar.warning("No recommendation found.")
 
-# ----------------- Auto-Apply Hairstyle ------------------ #
-
+# Hairstyle recommendation & overlay
 if st.sidebar.button("🎯 Recommend & Apply Best Hairstyle"):
     face_shape = get_face_shape(original_image)
     st.sidebar.write(f"🧠 Detected Face Shape: **{face_shape}**")
@@ -121,7 +67,7 @@ if st.sidebar.button("🎯 Recommend & Apply Best Hairstyle"):
     else:
         st.sidebar.warning("❌ No suitable hairstyle found.")
 
-# ----------------- Display Side by Side ------------------ #
+# Display results
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("🧑 Original Image")
