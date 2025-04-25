@@ -7,7 +7,6 @@ from PIL import Image
 from static.constants import DEFAULT_IMAGE_PATH
 from test import evaluate  # Assuming evaluate processes the image and returns parsing
 
-
 # Set page config
 st.set_page_config(page_title="Beauty Buzz - Occasions", page_icon="💄", layout="wide")
 
@@ -69,8 +68,8 @@ def sharpen(img):
     img_out = np.clip(img_out, 0, 1) * 255
     return np.array(img_out, dtype=np.uint8)
 
-# Function to apply hair color
-def hair(image, parsing, part=17, color=[230, 50, 20]):
+# Function to apply makeup
+def apply_makeup(image, parsing, part, color):
     b, g, r = color
     tar_color = np.zeros_like(image)
     tar_color[:, :, 0] = b
@@ -80,13 +79,19 @@ def hair(image, parsing, part=17, color=[230, 50, 20]):
     image_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     tar_hsv = cv2.cvtColor(tar_color, cv2.COLOR_BGR2HSV)
 
-    if part in [12, 13]:
+    if part in [12, 13]:  # Lips
         image_hsv[:, :, 0:2] = tar_hsv[:, :, 0:2]
-    else:
+    elif part in [14]:  # Eyeliner
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
+    elif part in [15]:  # Eyeshadow
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
+    elif part in [16]:  # Blush
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
+    else:  # Hair
         image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
 
     changed = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2BGR)
-    if part == 17:
+    if part == 17:  # Hair
         changed = sharpen(changed)
 
     changed[parsing != part] = image[parsing != part]
@@ -106,12 +111,12 @@ def render_occasions_page():
     
     # Fixed parameters for occasions
     occasion_params = {
-        "Office Day": {"hair_color": [128, 128, 128], "lip_color": [255, 182, 193]},  # Grey hair, pink lips
-        "Cocktail Party": {"hair_color": [0, 0, 255], "lip_color": [255, 0, 0]},      # Blue hair, red lips
-        "Wedding": {"hair_color": [255, 215, 0], "lip_color": [139, 0, 0]},          # Gold hair, deep red lips
-        "Birthday Party": {"hair_color": [255, 20, 147], "lip_color": [255, 165, 0]},# Pink hair, orange lips
-        "Night Out": {"hair_color": [0, 0, 0], "lip_color": [128, 0, 128]},          # Black hair, purple lips
-        "Casual Day": {"hair_color": [139, 69, 19], "lip_color": [255, 222, 173]},   # Brown hair, nude lips
+        "Office Day": {"hair_color": [128, 128, 128], "lip_color": [255, 182, 193], "foundation_color": [255, 224, 189]},  # Grey hair, pink lips, light foundation
+        "Cocktail Party": {"hair_color": [0, 0, 255], "lip_color": [255, 0, 0], "foundation_color": [255 , 204, 204]},      # Blue hair, red lips, light pink foundation
+        "Wedding": {"hair_color": [255, 215, 0], "lip_color": [139, 0, 0], "foundation_color": [255, 228, 196]},          # Gold hair, deep red lips, peach foundation
+        "Birthday Party": {"hair_color": [255, 20, 147], "lip_color": [255, 165, 0], "foundation_color": [255, 182, 193]},# Pink hair, orange lips, rosy foundation
+        "Night Out": {"hair_color": [0, 0, 0], "lip_color": [128, 0, 128], "foundation_color": [255, 228, 196]},          # Black hair, purple lips, tan foundation
+        "Casual Day": {"hair_color": [139, 69, 19], "lip_color": [255, 222, 173], "foundation_color": [255, 239, 204]},   # Brown hair, nude lips, light foundation
     }
 
     # Dropdown to select an occasion
@@ -174,14 +179,15 @@ def render_occasions_page():
     params = occasion_params[occasion]
     hair_color = params["hair_color"]
     lip_color = params["lip_color"]
+    foundation_color = params["foundation_color"]
 
     # Apply makeup on button click
     if st.button(f"Apply Makeup for {occasion}"):
-        table = {"hair": 17, "upper_lip": 12, "lower_lip": 13}
-        colors = [hair_color, lip_color, lip_color]
+        table = {"hair": 17, "upper_lip": 12, "lower_lip": 13, "eyeliner": 14, " eyeshadow": 15, "blush": 16, "foundation": 18}
+        colors = [hair_color, lip_color, lip_color, lip_color, lip_color, lip_color, foundation_color]  # Adjust as needed
 
         for part, color in zip(table.values(), colors):
-            image = hair(image, parsing, part, color)
+            image = apply_makeup(image, parsing, part, color)
 
         image = cv2.resize(image, (w, h))
         st.subheader("Transformed Image")
@@ -189,6 +195,5 @@ def render_occasions_page():
 
     # Footer with copyright information
     st.markdown("<footer>© 2024 BeautyBuzz. All rights reserved.</footer>", unsafe_allow_html=True)
-
 # Run the occasions page rendering function
 render_occasions_page()

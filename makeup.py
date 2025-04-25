@@ -3,7 +3,6 @@ import numpy as np
 from skimage.filters import gaussian
 from test import evaluate
 
-
 def sharpen(img):
     img = img * 1.0
     gauss_out = gaussian(img, sigma=5, channel_axis=-1)
@@ -11,7 +10,6 @@ def sharpen(img):
     img_out = (img - gauss_out) * alpha + img
     img_out = np.clip(img_out / 255.0, 0, 1) * 255
     return np.array(img_out, dtype=np.uint8)
-
 
 def apply_makeup(image, parsing, part=17, color=[230, 50, 20]):
     b, g, r = color
@@ -25,17 +23,22 @@ def apply_makeup(image, parsing, part=17, color=[230, 50, 20]):
 
     if part in [12, 13]:  # lips
         image_hsv[:, :, 0:2] = tar_hsv[:, :, 0:2]
+    elif part in [14]:  # eyeliner
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
+    elif part in [15]:  # eyeshadow
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
+    elif part in [16]:  # blush
+        image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
     else:
         image_hsv[:, :, 0:1] = tar_hsv[:, :, 0:1]
 
     changed = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2BGR)
 
-    if part == 17:
+    if part == 17:  # hair
         changed = sharpen(changed)
 
     changed[parsing != part] = image[parsing != part]
     return changed
-
 
 def apply_region_blend(image, mask, color, alpha=0.4):
     color_layer = np.full_like(image, color, dtype=np.uint8)
