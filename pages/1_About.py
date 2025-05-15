@@ -421,53 +421,6 @@ def set_background_from_url(url):
     </style>
     """
 
-# Sidebar Navigation
-with st.sidebar:
-    st.markdown("""
-    <div style="padding: 1rem 0.5rem; text-align: center;">
-        <h1 class="logo" style="color: white; justify-content: center;">💄 Beauty Buzz</h1>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Add some space
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Navigation items with icons
-    st.markdown("""
-    <div class="nav-item active">
-        <span>ℹ️</span> About
-    </div>
-    <div class="nav-item">
-        <span>🔍</span> Skin Analysis
-    </div>
-    <div class="nav-item">
-        <span>💄</span> Virtual Try-On
-    </div>
-    <div class="nav-item">
-        <span>🛍️</span> Product Finder
-    </div>
-    <div class="nav-item">
-        <span>👥</span> Community
-    </div>
-    <div class="nav-item">
-        <span>⚙️</span> Settings
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Add space before the sign-in button
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    # Sign-in button styled to match the theme
-    st.markdown("""
-    <div style="padding: 0 1rem;">
-        <button class="cta-button" style="width: 100%; padding: 0.75rem; font-size: 1rem; background: white; color: var(--primary-color);">
-            Sign In
-        </button>
-    </div>
-    <div style="text-align: center; margin-top: 0.5rem; color: rgba(255,255,255,0.8); font-size: 0.8rem;">
-        New user? <a href="#" style="color: white; text-decoration: underline;">Create account</a>
-    </div>
-    """, unsafe_allow_html=True)
 
 # App header on main content area
 st.markdown('<h1>About BeautyBuzz</h1>', unsafe_allow_html=True)
