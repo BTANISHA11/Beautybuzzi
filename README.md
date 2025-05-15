@@ -1,3 +1,27 @@
+# 💄 BEAUTY BUZZ - Face Makeup Editor using PyTorch
+
+**BEAUTY BUZZ** is a revolutionary virtual makeup tool that offers users the ability to try on various makeup styles in real-time. This interactive app makes it easier than ever to experiment with hair and lip colors using deep learning and face parsing techniques.
+
+👉 **[Try the live demo here!](https://beauty-jdkiwr8zuhsebhwn5wq6pa.streamlit.app/)**
+
+---
+
+## 🚀 Features
+
+- 🎨 Edit hair and lip colors with realistic effects
+- 🧠 Powered by PyTorch & face parsing deep learning models
+- 🖼️ Visual comparison of original vs edited look
+- 🧪 Experiment with custom RGB color palettes
+- 🖥️ Live demo using Streamlit interface
+
+---
+
+## 🖥️ Run the Project Locally
+
+```bash
+streamlit run app.py
+````
+
 # face-makeup.PyTorch
 Lip and hair color editor using face parsing maps.
 
