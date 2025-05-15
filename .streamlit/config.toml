@@ -1,0 +1,10 @@
+[theme]
+primaryColor = "#FF69B4"              # Pink (matching the gradient start)
+backgroundColor = "#FFF0F5"           # LavenderBlush (from gradient)
+secondaryBackgroundColor = "#FFE4E1"  # MistyRose
+textColor = "#4B0082"                 # Deep purple/indigo text
+font = "sans serif"
+
+[server]
+headless = true
+
