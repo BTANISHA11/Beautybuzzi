@@ -57,23 +57,29 @@ def render_hairstyle_recommendation_page():
     if uploaded_file is not None:
         # Display the uploaded image
         image = Image.open(uploaded_file)
-        st.image(image, caption='Uploaded Image', use_column_width=True)
+        
+        # Create two columns for side-by-side display
+        col1, col2 = st.columns(2)
 
-        # Analyze the face
-        st.write("Analyzing your face...")
-        results = analyze_face(image)
+        with col1:
+            st.image(image, caption='Uploaded Image', use_column_width=True)
 
-        # Display the results
-        st.write("### Analysis Results")
-        st.write(f"- **Face Shape:** {results['face_shape']}")
-        st.write(f"- **Hair Type:** {results['hair_type']}")
-        st.write(f"- **Preferences:** {results['preferences']}")
+        with col2:
+            # Analyze the face
+            st.write("Analyzing your face...")
+            results = analyze_face(image)
 
-        # Provide hairstyle recommendations based on analysis
-        st.write("### Hairstyle Recommendations")
-        recommendations = get_hairstyle_recommendations(results['face_shape'], results['hair_type'], results['preferences'])
-        for recommendation in recommendations:
-            st.write(f"- {recommendation}")
+            # Display the results
+            st.write("### Analysis Results")
+            st.write(f"- **Face Shape:** {results['face_shape']}")
+            st.write(f"- **Hair Type:** {results['hair_type']}")
+            st.write(f"- **Preferences:** {results['preferences']}")
+
+            # Provide hairstyle recommendations based on analysis
+            st.write("### Hairstyle Recommendations")
+            recommendations = get_hairstyle_recommendations(results['face_shape'], results['hair_type'], results['preferences'])
+            for recommendation in recommendations:
+                st.write(f"- {recommendation}")
 
 # Call the function to render the page
 if __name__ == "__main__":
