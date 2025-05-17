@@ -2,7 +2,7 @@
 
 **BEAUTY BUZZ** is a revolutionary virtual makeup tool that offers users the ability to try on various makeup styles in real-time. This interactive app makes it easier than ever to experiment with hair and lip colors using deep learning and face parsing techniques.
 
-👉 **[Try the live demo here!](https://beauty-jdkiwr8zuhsebhwn5wq6pa.streamlit.app/)**
+👉 **[Try the live demo here!](https://beautybuzz.streamlit.app/)**
 
 ---
 
