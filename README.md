@@ -207,6 +207,41 @@ User Photo (PIL Image / file path)
 
 ---
 
+## Commerce API
+
+The product recommendations page can now call a live commerce backend instead of using only mock retailer data.
+
+### What Changed
+
+- Product catalog entries are normalized with stable internal SKUs and retailer search hints before they are rendered.
+- The Streamlit app reads `BEAUTYBUZZI_COMMERCE_API` from environment variables or Streamlit secrets and posts product data to that endpoint.
+- The optional FastAPI backend in [backend/commerce_api.py](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/backend/commerce_api.py) now calls the eBay Browse API with OAuth client credentials, then falls back to mock offers if credentials are missing or the API is unavailable.
+
+### Local Setup
+
+1. Install the Streamlit app dependencies from `requirements.txt`.
+2. Install the commerce backend dependencies separately from [backend/requirements.txt](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/backend/requirements.txt).
+3. Copy [backend/.env.example](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/backend/.env.example) to a local `.env` file for the backend and fill in your eBay credentials.
+4. Set `BEAUTYBUZZI_COMMERCE_API` in your local Streamlit secrets file or environment variables.
+5. Start the backend:
+
+```bash
+uvicorn backend.commerce_api:app --host 127.0.0.1 --port 8000 --reload
+```
+
+6. For local Streamlit development, you can use [\.streamlit/secrets.toml.example](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/.streamlit/secrets.toml.example) as the template and point it at `http://127.0.0.1:8000/offers`.
+
+Running the Streamlit app and the commerce backend in one shared environment is not recommended here because Streamlit and FastAPI currently need different `starlette` ranges in practice for this project setup.
+
+### Required Variables
+
+- `BEAUTYBUZZI_COMMERCE_API`: URL of your deployed or local commerce backend, for example `http://127.0.0.1:8000/offers`
+- `EBAY_CLIENT_ID`: eBay application client ID
+- `EBAY_CLIENT_SECRET`: eBay application client secret
+- `EBAY_MARKETPLACE_ID`: optional marketplace selector such as `EBAY_US`
+
+---
+
 ## ⚙️ Local Setup
 
 ### Prerequisites

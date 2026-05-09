@@ -3,6 +3,74 @@ import base64
 from PIL import Image
 import io
 
+from services.product_catalog import enrich_product_list, enrich_product_map
+from services.product_offers import ProductOfferService
+
+
+offer_service = ProductOfferService()
+
+
+def render_offer_comparison(product, key_prefix, accent_color="#7c3c50"):
+    snapshot = offer_service.get_snapshot(product)
+    link_cols = st.columns([1.1, 1.2, 2.2])
+    with link_cols[0]:
+        st.link_button(
+            "Buy best offer",
+            snapshot.best_offer.url,
+            use_container_width=True,
+        )
+    with link_cols[1]:
+        if len(snapshot.offers) > 1:
+            st.link_button(
+                f"Buy from {snapshot.offers[1].retailer}",
+                snapshot.offers[1].url,
+                use_container_width=True,
+            )
+    with link_cols[2]:
+        st.markdown(
+            f"<div style='padding:10px 14px;border-radius:12px;background:#fff7f8;border:1px solid #f0d6dc;color:{accent_color};font-size:0.9rem;'>"
+            f"<b>Best price:</b> ${snapshot.best_offer.price:.2f} at {snapshot.best_offer.retailer} · {snapshot.comparison_label} · <b>Source:</b> {snapshot.source}"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    with st.expander(f"Compare prices for {product['name']}"):
+        comparison_rows = [
+            {
+                "Retailer": offer.retailer,
+                "Price": f"${offer.price:.2f}",
+                "Availability": "In stock" if offer.in_stock else "Out of stock",
+                "Shipping": offer.shipping_note,
+            }
+            for offer in snapshot.offers
+        ]
+        st.table(comparison_rows)
+        retailer_cols = st.columns(len(snapshot.offers))
+        for idx, offer in enumerate(snapshot.offers):
+            with retailer_cols[idx]:
+                st.link_button(
+                    f"Open {offer.retailer}",
+                    offer.url,
+                    key=f"{key_prefix}_offer_{idx}",
+                    use_container_width=True,
+                )
+
+
+def render_product_card(product, key_prefix, accent_color="#b76e79", description_key=None, weekly_note=None):
+    description_field = description_key or ("desc" if "desc" in product else "description")
+    description = product.get(description_field, "")
+    st.markdown(
+        f"""
+        <div class="product-card" style="border-left-color:{accent_color};">
+            <b>{product['icon']} {product['name']}</b> — <span style="color:{accent_color};">{product['brand']}</span> · <b>${product['price']}</b><br>
+            <span style="color:#555;font-size:0.9rem;">{description}</span>
+            {f'<p style="margin:10px 0 0 0; color:{accent_color}; font-family: Poppins, sans-serif; font-weight: 500; font-size: 0.85rem;">{weekly_note}</p>' if weekly_note else ''}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    render_offer_comparison(product, key_prefix, accent_color=accent_color)
+
 
 
 def local_css():
@@ -246,6 +314,7 @@ def render_product_recommendations_page():
                     {"name": "Mineral SPF 50", "brand": "EltaMD", "price": 40, "icon": "☀️", "desc": "Physical-only sunscreen — gentler than chemical filters."},
                 ],
             }
+            men_products = enrich_product_map(men_products, segment="men", category="skincare")
 
             beard_products = [
                 {"name": "Beard Oil", "brand": "Beardbrand", "price": 25, "icon": "🛢️", "desc": "Conditions the beard and moisturises the skin underneath. Apply daily."},
@@ -254,18 +323,14 @@ def render_product_recommendations_page():
                 {"name": "Beard Shaper / Brush", "brand": "Zeus", "price": 15, "icon": "🪥", "desc": "Natural bristle brush trains the beard direction and distributes product evenly."},
                 {"name": "Beard Trimmer", "brand": "Philips Norelco", "price": 45, "icon": "✂️", "desc": "Precision trimming for all beard lengths and styles."},
             ]
+            beard_products = enrich_product_list(beard_products, segment="men", collection="beard-care", category="grooming")
 
             filtered_men = [p for p in men_products.get(men_skin_type, []) if men_budget[0] <= p["price"] <= men_budget[1]]
 
             st.markdown(f"#### 🧴 {men_skin_type} Skin — Recommended Products (${men_budget[0]}–${men_budget[1]})")
             if filtered_men:
-                for p in filtered_men:
-                    st.markdown(f"""
-                    <div class="product-card">
-                        <b>{p['icon']} {p['name']}</b> — <span style="color:#7c3c50;">{p['brand']}</span> · <b>${p['price']}</b><br>
-                        <span style="color:#555;font-size:0.9rem;">{p['desc']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                for idx, p in enumerate(filtered_men):
+                    render_product_card(p, key_prefix=f"men_core_{idx}", accent_color="#7c3c50", description_key="desc")
             else:
                 st.info("No products in this budget range — try widening the slider.")
 
@@ -273,13 +338,8 @@ def render_product_recommendations_page():
                 st.markdown("#### 🧔 Beard Care Products")
                 filtered_beard = [p for p in beard_products if men_budget[0] <= p["price"] <= men_budget[1]]
                 if filtered_beard:
-                    for p in filtered_beard:
-                        st.markdown(f"""
-                        <div class="product-card" style="border-left-color:#6c5ce7;">
-                            <b>{p['icon']} {p['name']}</b> — <span style="color:#6c5ce7;">{p['brand']}</span> · <b>${p['price']}</b><br>
-                            <span style="color:#555;font-size:0.9rem;">{p['desc']}</span>
-                        </div>
-                        """, unsafe_allow_html=True)
+                    for idx, p in enumerate(filtered_beard):
+                        render_product_card(p, key_prefix=f"beard_{idx}", accent_color="#6c5ce7", description_key="desc")
                 else:
                     st.info("No beard products in this budget range.")
 
@@ -430,6 +490,18 @@ def render_product_recommendations_page():
                 ]
             }
         }
+        recommendations = {
+            key: {
+                **value,
+                "products": enrich_product_list(
+                    value["products"],
+                    segment="women-non-binary",
+                    collection=f"{key.lower()}-core",
+                    category="skincare",
+                ),
+            }
+            for key, value in recommendations.items()
+        }
         
         # Additional product recommendations based on concerns
         concern_products = {
@@ -469,6 +541,15 @@ def render_product_recommendations_page():
                 {"name": "Green Color Corrector", "brand": "Dr. Jart+", "price": 52, "description": "Neutralizes redness instantly", "icon": "🟩"},
                 {"name": "Cica Recovery Balm", "brand": "Etude House", "price": 24, "description": "Calms and reduces redness", "icon": "🌱"}
             ]
+        }
+        concern_products = {
+            concern: enrich_product_list(
+                products,
+                segment="women-non-binary",
+                collection=f"concern-{concern.lower()}",
+                category="treatment",
+            )
+            for concern, products in concern_products.items()
         }
         
         # Button to get recommendations
@@ -554,36 +635,7 @@ def render_product_recommendations_page():
                     
                     # Display morning products as cards
                     for i, product in enumerate(ordered_products[:4]):  # Limit to 4 products for morning
-                        st.markdown(
-                            f"""
-                            <div class="product-card">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <h4 style="margin: 0; color: #403b3e; font-family: 'Poppins', sans-serif;">
-                                            {i+1}. {product["icon"]} {product["name"]}
-                                        </h4>
-                                        <p style="margin: 5px 0 0 0; color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 500;">
-                                            {product["brand"]} · ${product["price"]}
-                                        </p>
-                                    </div>
-                                    <div style="background: linear-gradient(90deg, #fce1e4, #fcf4dd); 
-                                                border-radius: 50%; 
-                                                width: 45px; 
-                                                height: 45px; 
-                                                display: flex; 
-                                                align-items: center; 
-                                                justify-content: center;
-                                                box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                                        <span style="font-size: 1.5rem;">{product["icon"]}</span>
-                                    </div>
-                                </div>
-                                <p style="margin: 10px 0 0 0; color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 0.9rem;">
-                                    {product["description"]}
-                                </p>
-                            </div>
-                            """, 
-                            unsafe_allow_html=True
-                        )
+                        render_product_card(product, key_prefix=f"morning_{i}", accent_color="#7c3c50")
                 
                 # Evening routine
                 with routine_tabs[1]:
@@ -608,36 +660,7 @@ def render_product_recommendations_page():
                     
                     # Display evening products as cards
                     for i, product in enumerate(evening_products[:4]):  # Limit to 4 products for evening
-                        st.markdown(
-                            f"""
-                            <div class="product-card">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <h4 style="margin: 0; color: #403b3e; font-family: 'Poppins', sans-serif;">
-                                            {i+1}. {product["icon"]} {product["name"]}
-                                        </h4>
-                                        <p style="margin: 5px 0 0 0; color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 500;">
-                                            {product["brand"]} · ${product["price"]}
-                                        </p>
-                                    </div>
-                                    <div style="background: linear-gradient(90deg, #fcf4dd, #ddedea); 
-                                                border-radius: 50%; 
-                                                width: 45px; 
-                                                height: 45px; 
-                                                display: flex; 
-                                                align-items: center; 
-                                                justify-content: center;
-                                                box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                                        <span style="font-size: 1.5rem;">{product["icon"]}</span>
-                                    </div>
-                                </div>
-                                <p style="margin: 10px 0 0 0; color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 0.9rem;">
-                                    {product["description"]}
-                                </p>
-                            </div>
-                            """, 
-                            unsafe_allow_html=True
-                        )
+                        render_product_card(product, key_prefix=f"evening_{i}", accent_color="#7c3c50")
                 
                 # Weekly treatments
                 with routine_tabs[2]:
@@ -660,38 +683,11 @@ def render_product_recommendations_page():
                     
                     # Display weekly treatment products as cards
                     for i, product in enumerate(weekly_products[:2]):  # Limit to 2 products for treatments
-                        st.markdown(
-                            f"""
-                            <div class="product-card">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <h4 style="margin: 0; color: #403b3e; font-family: 'Poppins', sans-serif;">
-                                            {product["icon"]} {product["name"]}
-                                        </h4>
-                                        <p style="margin: 5px 0 0 0; color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 500;">
-                                            {product["brand"]} · ${product["price"]}
-                                        </p>
-                                    </div>
-                                    <div style="background: linear-gradient(90deg, #ddedea, #fce1e4); 
-                                                border-radius: 50%; 
-                                                width: 45px; 
-                                                height: 45px; 
-                                                display: flex; 
-                                                align-items: center; 
-                                                justify-content: center;
-                                                box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                                        <span style="font-size: 1.5rem;">{product["icon"]}</span>
-                                    </div>
-                                </div>
-                                <p style="margin: 10px 0 0 0; color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 0.9rem;">
-                                    {product["description"]}
-                                </p>
-                                <p style="margin: 10px 0 0 0; color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 0.85rem;">
-                                    Use 1-2 times per week for best results
-                                </p>
-                            </div>
-                            """, 
-                            unsafe_allow_html=True
+                        render_product_card(
+                            product,
+                            key_prefix=f"weekly_{i}",
+                            accent_color="#7c3c50",
+                            weekly_note="Use 1-2 times per week for best results",
                         )
                     
                     # If no weekly products found
@@ -737,26 +733,11 @@ def render_product_recommendations_page():
                                     filtered_concern_products = [p for p in concern_products[concern] if budget[0] <= p["price"] <= budget[1]]
                                     
                                     if filtered_concern_products:
-                                        for product in filtered_concern_products:
-                                            st.markdown(
-                                                f"""
-                                                <div style="margin-bottom: 15px; 
-                                                            padding: 10px;
-                                                            background-color: white;
-                                                            border-radius: 10px;
-                                                            box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                                                    <h5 style="margin: 0; color: #403b3e; font-family: 'Poppins', sans-serif;">
-                                                        {product["icon"]} {product["name"]}
-                                                    </h5>
-                                                    <p style="margin: 5px 0 0 0; color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 0.85rem;">
-                                                        {product["brand"]} · ${product["price"]}
-                                                    </p>
-                                                    <p style="margin: 5px 0 0 0; color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 0.85rem;">
-                                                        {product["description"]}
-                                                    </p>
-                                                </div>
-                                                """, 
-                                                unsafe_allow_html=True
+                                        for product_idx, product in enumerate(filtered_concern_products):
+                                            render_product_card(
+                                                product,
+                                                key_prefix=f"concern_{concern}_{product_idx}",
+                                                accent_color="#7c3c50",
                                             )
                                     else:
                                         st.markdown(
