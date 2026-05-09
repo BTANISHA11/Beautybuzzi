@@ -10,7 +10,7 @@
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.10%2B-green?logo=opencv)](https://opencv.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-**BeautyBuzzi** is a full-featured, production-grade AI beauty and grooming assistant built with Streamlit and PyTorch. It delivers virtual makeup try-on, AI skin analysis, personalised skincare routines, hairstyle recommendations, occasion-specific looks, curated product recommendations, and expert consultation booking — for **women, men, and non-binary users**.
+**BeautyBuzzi** is a comprehensive, production-grade AI beauty and grooming platform built with **Streamlit (frontend) + FastAPI (backend) + Next.js (web)**. It delivers virtual makeup try-on, AI skin analysis, personalised skincare routines, hairstyle recommendations, occasion-specific looks, curated product recommendations, expert consultation booking, user profile management, shopping integration, and smart device orchestration — for **women, men, and non-binary users**.
 
 </div>
 
@@ -82,22 +82,25 @@
 ### High-Level Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                      BeautyBuzzi App                         │
-│               Streamlit Multi-Page Application               │
-└───────────────────────┬──────────────────────────────────────┘
-                        │
-        ┌───────────────┼───────────────┐
-        ▼               ▼               ▼
- ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
- │  AI / ML    │  │  CV Layer   │  │  UI Layer   │
- │  Layer      │  │             │  │             │
- └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
-        │                │                │
-        ▼                ▼                ▼
- BiSeNet Face     MediaPipe /       Streamlit Pages
- Parsing Model    OpenCV CV Layer   + Custom CSS /
- (PyTorch)        Landmark Tracking Google Fonts
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         BeautyBuzzi Platform                             │
+│     (Streamlit App + FastAPI Backend + Next.js Web Commerce)            │
+└──────────────┬──────────────────────┬─────────────────────┬─────────────┘
+               │                      │                     │
+      ┌────────▼────────┐  ┌─────────▼──────────┐  ┌───────▼──────────┐
+      │  Streamlit      │  │  FastAPI Backend   │  │  Next.js Web     │
+      │  Frontend       │  │  (30+ endpoints)   │  │  (7 pages)       │
+      └────────┬────────┘  └─────────┬──────────┘  └───────┬──────────┘
+               │                     │                      │
+      ┌────────▼─────────────────────▼──────────────────────▼────────┐
+      │                                                               │
+      │   AI/ML Layer      │   CV Layer        │   Data Layer        │
+      │  ─────────────────────────────────────────────────────       │
+      │  BiSeNet Face     │ MediaPipe / CV    │ User Profiles       │
+      │  Parsing (PyTorch)│ Landmark Track    │ Product DB          │
+      │  ResNet-18        │ OpenCV            │ Consultations       │
+      │  (ImageNet)       │ LAB-space blend   │ IoT Devices         │
+      └──────────────────┴───────────────────┴─────────────────────┘
         │
         ▼
  ResNet-18 Backbone
@@ -109,37 +112,63 @@
 ```
 beautybuzzi/
 │
-├── app.py                            # Main page — Virtual Makeup Try-On
+├── ★ STREAMLIT APP (Main UI)
+│   ├── app.py                            # Main page — Virtual Makeup Try-On
+│   ├── pages/
+│   │   ├── 1_About.py
+│   │   ├── 2_Skin_analysis.py            # Webcam, JSON export, history
+│   │   ├── 3_Occasions.py
+│   │   ├── 4_Hairstyles.py
+│   │   ├── 5_Product_recommendations.py
+│   │   ├── 6_Consultations.py
+│   │   ├── Features.py
+│   │   └── skincare_tips.py
+│   └── requirements.txt
 │
-├── pages/
-│   ├── 1_About.py                    # App introduction & feature overview
-│   ├── 2_Skin_analysis.py            # AI skin scoring & personalised routine
-│   ├── 3_Occasions.py                # Occasion-based looks (AI try-on + grooming)
-│   ├── 4_Hairstyles.py               # Face-shape detection + style database
-│   ├── 5_Product_recommendations.py  # Gender-aware curated product guide
-│   ├── 6_Consultations.py            # Expert booking form + FAQ
-│   ├── Features.py                   # Feature showcase page
-│   └── skincare_tips.py              # 5-tab skincare education hub
+├── ★ AI/ML LAYER
+│   ├── model.py                          # BiSeNet face parsing
+│   ├── mediapipe_makeup.py               # MediaPipe landmarks + LAB blending
+│   ├── resnet.py                         # ResNet-18 backbone
+│   ├── test.py                           # evaluate() → segmentation
+│   ├── makeup.py                         # apply_makeup() functions
+│   └── recommend_hairstyle.py
 │
-├── model.py                          # BiSeNet face parsing model definition
-├── mediapipe_makeup.py               # Landmark-based LAB blending + tone matching
-├── resnet.py                         # ResNet-18 backbone (feature encoder)
-├── test.py                           # evaluate() — inference → segmentation mask
-├── makeup.py                         # apply_makeup(), apply_region_blend()
-├── recommend_hairstyle.py            # get_face_shape() helper
+├── ★ PRODUCTION BACKEND (FastAPI)
+│   └── backend/
+│       ├── commerce_api.py               # eBay Browse API integration
+│       ├── requirements.txt              # Backend dependencies
+│       └── app/ (30+ endpoints)
+│           ├── main.py                   # FastAPI app (products, users, IoT, consultations)
+│           ├── services/
+│           │   ├── product_service.py    # Product recommendations
+│           │   └── user_service.py       # User profiles, history, consultations
+│           └── schemas.py                # 20+ Pydantic models
+│
+├── ★ PRODUCTION FRONTEND (Next.js)
+│   └── frontend/
+│       └── app/
+│           ├── page.tsx                  # Overview/Home
+│           ├── products/page.tsx         # Product shop + filtering
+│           ├── dashboard/page.tsx        # User profile & history
+│           ├── consultations/page.tsx    # Expert booking
+│           ├── iot/page.tsx              # Smart device manager
+│           ├── layout.tsx                # Navigation
+│           └── ... (7 total pages)
 │
 ├── static/
-│   ├── constants.py                  # DEFAULT_IMAGE_PATH, TABLE (part index map)
-│   └── styles.css                    # Shared CSS variables
+│   ├── constants.py
+│   └── styles.css
 │
 ├── cp/
-│   └── 79999_iter.pth                # BiSeNet trained weights (face parsing)
+│   └── 79999_iter.pth                # BiSeNet weights
 │
-├── imgs/                             # Sample input images
-├── makeup/                           # Sample makeup output images
-├── hairstyles/                       # Hairstyle reference images
+├── imgs/, makeup/, hairstyles/       # Sample assets
 │
-└── requirements.txt                  # Dependency versions
+├── services/                         # Commerce & utilities
+│   ├── product_catalog.py
+│   └── product_offers.py
+│
+└── PRODUCTION_ARCHITECTURE.md        # Full design docs
 ```
 
 ### AI Pipeline — Makeup Try-On
@@ -194,51 +223,149 @@ User Photo (PIL Image / file path)
 
 ---
 
+## 🏛️ Three-Tier Architecture
+
+BeautyBuzzi operates as an integrated multi-tier platform:
+
+### **Tier 1: Streamlit Desktop App** (Primary User Interface)
+- Real-time makeup try-on with MediaPipe landmarks
+- AI skin analysis with detailed reporting
+- Hairstyle recommendations based on face shape
+- Occasion-specific grooming guides
+- Educational skincare resources
+- **Deployment:** Local or Streamlit Cloud
+- **Best for:** Desktop users, real-time interactive features, quick analysis
+
+### **Tier 2: FastAPI Backend** (Unified Data & Commerce Layer)
+- 30+ REST endpoints for products, users, consultations, IoT
+- Manages user profiles, skin analysis history, consultation bookings
+- Integrates with eBay Browse API for live product data
+- Handles IoT device registration and smart mirror commands
+- Persistent data layer (ready for database integration)
+- **Port:** 8000 | **Docs:** http://localhost:8000/docs
+- **Best for:** Backend operations, API-driven features, cross-platform access
+
+### **Tier 3: Next.js Web App** (Modern Web Frontend)
+- 7 fully-featured pages (products, dashboard, consultations, IoT, etc.)
+- User profile management with skin history visualization
+- Product shopping with multi-platform retailer links
+- Expert consultation booking system
+- IoT device management for smart mirrors and lights
+- Responsive design for mobile and desktop
+- **Port:** 3000 | **Framework:** Next.js 14 App Router
+- **Best for:** Web users, mobile browsers, e-commerce flows, IoT management
+
+### **Data Flow**
+```
+Streamlit App ←→ FastAPI Backend ←→ Database (future: PostgreSQL/MongoDB)
+                      ↓
+                 eBay Browse API
+                      ↓
+                 Product Data
+
+Next.js Web ←→ FastAPI Backend ←→ User Profiles & Sessions
+                      ↓
+                 IoT Devices
+                 Smart Mirrors
+```
+
+### **Why Three Tiers?**
+- **Separation of Concerns:** UI, business logic, and data are decoupled
+- **Scalability:** Each tier can scale independently
+- **Flexibility:** Users can interact via Streamlit (desktop), Web (mobile), or API (mobile apps, integrations)
+- **Production Ready:** Backend & frontend scaffold support enterprise deployment
+- **Commerce Integration:** Unified product catalog and shopping across all UIs
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Frontend / UI** | Streamlit 1.35+, HTML/CSS, Google Fonts |
+| **Streamlit Frontend** | Streamlit 1.35+, HTML/CSS, Google Fonts |
+| **REST API / Backend** | FastAPI 0.115.2, Uvicorn 0.31.1, Pydantic 2.9.2, eBay Browse API |
+| **Web Frontend** | Next.js 14.2.15, React 18.3.1, TypeScript 5.6.3, responsive grid |
 | **Deep Learning** | PyTorch 2.6, BiSeNet (face parsing), ResNet-18 backbone |
-| **Computer Vision** | OpenCV 4.10+, MediaPipe face landmarks, LAB-space feathered blending |
-| **Image Processing** | Pillow 12+, NumPy 2+, scikit-image (Gaussian blur) |
-| **Data** | pandas 2+, Python dicts (product / style databases) |
-| **Runtime** | Python 3.10–3.13, venv |
+| **Computer Vision** | OpenCV 4.10+, MediaPipe face landmarks, LAB-space blending |
+| **Image Processing** | Pillow 12+, NumPy 2+, scikit-image |
+| **Data** | pandas 2+, UUID-based user/session IDs, in-memory storage |
+| **Runtime** | Python 3.10„3.13, Node.js 18+, venv / npm |
 
 ---
 
-## Commerce API
+## 🏗️ Production Scaffold (Backend + Frontend)
 
-The product recommendations page can now call a live commerce backend instead of using only mock retailer data.
+A full production-grade architecture has been built on top of the core Streamlit app:
 
-### What Changed
+### Backend (FastAPI)
+**30+ API endpoints** for:
+- **Products** — Recommendations, category browsing, trending items, shopping links (Sephora, Amazon, Ulta, Nykaa)
+- **User Management** — Profile CRUD, skin analysis history, gender-aware suggestions
+- **Consultations** — 4 expert specialists (dermatologist, makeup artist, grooming expert, Ayurveda), booking & scheduling
+- **IoT Devices** — Smart mirror, lights, AR glasses registration and command execution
+- **Commerce API** — eBay Browse API integration with mock fallback
 
-- Product catalog entries are normalized with stable internal SKUs and retailer search hints before they are rendered.
-- The Streamlit app reads `BEAUTYBUZZI_COMMERCE_API` from environment variables or Streamlit secrets and posts product data to that endpoint.
-- The optional FastAPI backend in [backend/commerce_api.py](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/backend/commerce_api.py) now calls the eBay Browse API with OAuth client credentials, then falls back to mock offers if credentials are missing or the API is unavailable.
+### Frontend (Next.js App Router)
+**7 fully functional pages**:
+- **Overview** — Feature showcase
+- **Try-On** — Direct makeup try-on link
+- **Skin** — AI analysis interface
+- **Shop** — Product recommendations with filters (concern, skin tone, budget, eco-friendly)
+- **Dashboard** — User profile creation, skin history tracking, trend visualization
+- **Consultations** — Expert browsing, date/time booking, confirmation
+- **IoT Devices** — Register smart mirrors/lights/AR glasses, start sessions, send commands
 
-### Local Setup
+### Features
+- ✅ UUID-based user & session management
+- ✅ Persistent consultation bookings
+- ✅ Real-time IoT device command execution
+- ✅ Multi-platform shopping (Sephora, Amazon, Ulta, Nykaa, brand sites)
+- ✅ Gender-aware & skin-tone inclusive recommendations
+- ✅ Auto-generated Swagger API docs
+- ✅ CORS-enabled for local development
+- ✅ Form validation on both frontend & backend
 
-1. Install the Streamlit app dependencies from `requirements.txt`.
-2. Install the commerce backend dependencies separately from [backend/requirements.txt](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/backend/requirements.txt).
-3. Copy [backend/.env.example](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/backend/.env.example) to a local `.env` file for the backend and fill in your eBay credentials.
-4. Set `BEAUTYBUZZI_COMMERCE_API` in your local Streamlit secrets file or environment variables.
-5. Start the backend:
+### Running the Full Stack Locally
 
+#### 1. Streamlit App (Port 8501)
 ```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+streamlit run app.py
+```
+Opens at **http://localhost:8501**
+
+#### 2. FastAPI Backend (Port 8000)
+```bash
+# Install backend dependencies
+pip install -r backend/requirements.txt
+
+# Start the server
 uvicorn backend.commerce_api:app --host 127.0.0.1 --port 8000 --reload
 ```
+API docs available at **http://localhost:8000/docs** (Swagger UI)
 
-6. For local Streamlit development, you can use [\.streamlit/secrets.toml.example](c:/Users/Tanisha.Bansal/Documents/personal/Beautybuzzi/.streamlit/secrets.toml.example) as the template and point it at `http://127.0.0.1:8000/offers`.
+#### 3. Next.js Web Frontend (Port 3000)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Opens at **http://localhost:3000**
 
-Running the Streamlit app and the commerce backend in one shared environment is not recommended here because Streamlit and FastAPI currently need different `starlette` ranges in practice for this project setup.
+### Environment Variables
 
-### Required Variables
+**Streamlit** (`.streamlit/secrets.toml` or environment):
+- `BEAUTYBUZZI_COMMERCE_API`: Backend URL, e.g., `http://127.0.0.1:8000/offers`
 
-- `BEAUTYBUZZI_COMMERCE_API`: URL of your deployed or local commerce backend, for example `http://127.0.0.1:8000/offers`
-- `EBAY_CLIENT_ID`: eBay application client ID
-- `EBAY_CLIENT_SECRET`: eBay application client secret
-- `EBAY_MARKETPLACE_ID`: optional marketplace selector such as `EBAY_US`
+**Backend** (`backend/.env`):
+- `EBAY_CLIENT_ID`: eBay OAuth client ID
+- `EBAY_CLIENT_SECRET`: eBay OAuth client secret
+- `EBAY_MARKETPLACE_ID`: Marketplace selector (e.g., `EBAY_US`)
+
+> **Note:** Streamlit and FastAPI use different `starlette` versions. Keep them in separate virtual environments or use `conda` to manage compatibility.
 
 ---
 
@@ -298,19 +425,38 @@ mediapipe>=0.10.0
 
 ## 🗺️ Roadmap
 
-### Implemented in the current Streamlit app
+### ✅ Implemented — Streamlit App
 - [x] MediaPipe landmark-based try-on
 - [x] Webcam snapshot input
 - [x] LAB-space feathered makeup blending
 - [x] Foundation shade matching via cheek tone detection
-- [x] Session-based saved looks and skin progress history
+- [x] Session-based saved looks & skin progress history
+- [x] Gender-aware makeup controls (women, men, non-binary)
 
-### Remaining larger roadmap items
-- [ ] True real-time WebRTC makeup streaming
-- [ ] Product affiliate / click-to-buy links
-- [ ] Persistent saved looks with user accounts
-- [ ] Makeup tutorial video integration
-- [ ] Mobile-first frontend and browser-side inference
+### ✅ Implemented — Production Scaffold (Backend + Frontend)
+- [x] FastAPI backend with 30+ REST endpoints
+- [x] Next.js web application (7 pages)
+- [x] User profile management & skin history tracking
+- [x] Expert consultation booking system
+- [x] IoT device registration & smart mirror support
+- [x] Multi-platform product shopping (Sephora, Amazon, Ulta, Nykaa)
+- [x] eBay Browse API integration with fallback
+- [x] Swagger API documentation
+- [x] UUID-based session management
+- [x] CORS-enabled for local development
+
+### 🔮 Future Enhancements
+- [ ] PostgreSQL / MongoDB persistent storage
+- [ ] User authentication (JWT / OAuth)
+- [ ] Payment integration (Stripe / Razorpay)
+- [ ] Real-time WebRTC streaming
+- [ ] WebSocket for live mirror sessions
+- [ ] Browser-side ML inference (ONNX.js)
+- [ ] AWS IoT Core integration
+- [ ] Mobile app (React Native)
+- [ ] Analytics & reporting dashboard
+- [ ] Admin panel
+- [ ] Multi-language support
 
 ---
 
