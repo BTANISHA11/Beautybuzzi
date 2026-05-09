@@ -201,6 +201,114 @@ def render_product_recommendations_page():
             """, 
             unsafe_allow_html=True
         )
+
+        # ── Gender & Age selectors ────────────────────────────────────────────
+        g_col, a_col = st.columns(2)
+        with g_col:
+            gender = st.selectbox("👤 I identify as", ["Woman", "Man", "Non-binary"])
+        with a_col:
+            age_group = st.selectbox("🎂 Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
+
+        # Men's grooming path
+        if gender == "Man":
+            st.markdown("---")
+            st.markdown("### 💈 Men's Grooming Guide")
+            men_skin_types = {"Normal": "✨", "Oily": "💦", "Dry": "🏜️", "Sensitive": "🌸"}
+            sel_men_type = st.selectbox("Skin Type", [f"{v} {k}" for k, v in men_skin_types.items()])
+            men_skin_type = sel_men_type.split(" ")[1]
+            men_budget = st.slider("Budget ($)", 0, 150, (20, 80), step=5)
+            has_beard = st.checkbox("🧔 I have / want to grow a beard")
+
+            men_products = {
+                "Normal": [
+                    {"name": "Daily Face Wash", "brand": "Bulldog", "price": 10, "icon": "🧼", "desc": "Gentle, natural ingredients formula for everyday cleansing."},
+                    {"name": "Invisible SPF 50 Moisturiser", "brand": "Kiehl's", "price": 35, "icon": "☀️", "desc": "Hydrates and protects in one step — perfect for minimal routines."},
+                    {"name": "Niacinamide 10% Serum", "brand": "The Ordinary", "price": 9, "icon": "💧", "desc": "Controls oil, minimises pores, and evens skin tone."},
+                    {"name": "Eye Gel", "brand": "Jack Black", "price": 30, "icon": "👁️", "desc": "Reduces puffiness and dark circles under the eyes."},
+                ],
+                "Oily": [
+                    {"name": "Purifying Gel Cleanser", "brand": "Lab Series", "price": 22, "icon": "🧼", "desc": "Removes excess oil and unclogs pores."},
+                    {"name": "BHA Exfoliant", "brand": "Paula's Choice", "price": 33, "icon": "💧", "desc": "2% salicylic acid — weekly use to keep pores clear."},
+                    {"name": "Oil-Free Lightweight Moisturiser", "brand": "Baxter of California", "price": 28, "icon": "🌿", "desc": "Hydrates without shine or greasiness."},
+                    {"name": "Matte SPF 50", "brand": "Supergoop", "price": 38, "icon": "☀️", "desc": "Invisible matte finish sunscreen."},
+                    {"name": "Charcoal Clay Mask", "brand": "Clinique", "price": 29, "icon": "🧖", "desc": "Deep-cleans pores. Use 1–2× weekly."},
+                ],
+                "Dry": [
+                    {"name": "Hydrating Cream Cleanser", "brand": "CeraVe", "price": 14, "icon": "🧼", "desc": "Cleanses without disrupting the moisture barrier."},
+                    {"name": "Hyaluronic Acid Serum", "brand": "The Inkey List", "price": 10, "icon": "💧", "desc": "Draws moisture into the skin."},
+                    {"name": "Rich Daily Moisturiser", "brand": "Kiehl's", "price": 42, "icon": "🧴", "desc": "Thick cream formula for lasting hydration."},
+                    {"name": "Hydrating SPF 50", "brand": "Elta MD", "price": 37, "icon": "☀️", "desc": "Moisturises and protects in one."},
+                ],
+                "Sensitive": [
+                    {"name": "Gentle Fragrance-Free Cleanser", "brand": "Vanicream", "price": 12, "icon": "🧼", "desc": "No dyes, fragrance or harsh surfactants."},
+                    {"name": "Centella Serum", "brand": "COSRX", "price": 18, "icon": "🌿", "desc": "Calms redness and repairs the skin barrier."},
+                    {"name": "Soothing Moisturiser", "brand": "Avène", "price": 25, "icon": "🧴", "desc": "Thermal spring water formula for reactive skin."},
+                    {"name": "Mineral SPF 50", "brand": "EltaMD", "price": 40, "icon": "☀️", "desc": "Physical-only sunscreen — gentler than chemical filters."},
+                ],
+            }
+
+            beard_products = [
+                {"name": "Beard Oil", "brand": "Beardbrand", "price": 25, "icon": "🛢️", "desc": "Conditions the beard and moisturises the skin underneath. Apply daily."},
+                {"name": "Beard Balm", "brand": "Mountaineer Brand", "price": 18, "icon": "🪮", "desc": "Light hold and conditioning for medium-to-long beards."},
+                {"name": "Beard Wash", "brand": "Scotch Porter", "price": 20, "icon": "🧼", "desc": "Gentle cleanser specifically for facial hair — use 2–3× a week."},
+                {"name": "Beard Shaper / Brush", "brand": "Zeus", "price": 15, "icon": "🪥", "desc": "Natural bristle brush trains the beard direction and distributes product evenly."},
+                {"name": "Beard Trimmer", "brand": "Philips Norelco", "price": 45, "icon": "✂️", "desc": "Precision trimming for all beard lengths and styles."},
+            ]
+
+            filtered_men = [p for p in men_products.get(men_skin_type, []) if men_budget[0] <= p["price"] <= men_budget[1]]
+
+            st.markdown(f"#### 🧴 {men_skin_type} Skin — Recommended Products (${men_budget[0]}–${men_budget[1]})")
+            if filtered_men:
+                for p in filtered_men:
+                    st.markdown(f"""
+                    <div class="product-card">
+                        <b>{p['icon']} {p['name']}</b> — <span style="color:#7c3c50;">{p['brand']}</span> · <b>${p['price']}</b><br>
+                        <span style="color:#555;font-size:0.9rem;">{p['desc']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No products in this budget range — try widening the slider.")
+
+            if has_beard:
+                st.markdown("#### 🧔 Beard Care Products")
+                filtered_beard = [p for p in beard_products if men_budget[0] <= p["price"] <= men_budget[1]]
+                if filtered_beard:
+                    for p in filtered_beard:
+                        st.markdown(f"""
+                        <div class="product-card" style="border-left-color:#6c5ce7;">
+                            <b>{p['icon']} {p['name']}</b> — <span style="color:#6c5ce7;">{p['brand']}</span> · <b>${p['price']}</b><br>
+                            <span style="color:#555;font-size:0.9rem;">{p['desc']}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info("No beard products in this budget range.")
+
+            # Men's routine guide
+            st.markdown("---")
+            st.markdown("#### 📋 Simple Men's Skincare Routine")
+            am = ["Gentle face wash", "Serum (niacinamide or vitamin C)", "Moisturiser with SPF 50"]
+            pm = ["Face wash", "Treatment serum (retinol 1–2× a week if 30+)", "Moisturiser"]
+            if has_beard:
+                am.insert(1, "Post-shave balm or beard oil on facial hair")
+                pm.append("Beard oil (comb through beard)")
+            if age_group in ["36–45", "46–55", "55+"]:
+                pm.insert(2, "Retinol 0.1–0.3% (start slowly, build up)")
+
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("**☀️ Morning**")
+                for s in am:
+                    st.markdown(f"- {s}")
+            with c2:
+                st.markdown("**🌙 Evening**")
+                for s in pm:
+                    st.markdown(f"- {s}")
+
+            st.markdown("---")
+            st.info("💡 **Minimum viable routine:** cleanser + SPF in the AM, cleanser + moisturiser in the PM. That's it. Everything else is a bonus.")
+            return   # Exit the function — men's section is complete
+
+        # ── Women / Non-binary continue with the existing skin-type section ───
         
         # Skin type selection with icons
         skin_types = {
@@ -246,6 +354,10 @@ def render_product_recommendations_page():
             0, 200, (30, 100),
             step=10
         )
+        
+        # Age-based additions
+        if age_group in ["36–45", "46–55", "55+"]:
+            st.info("💡 Based on your age group, we've added anti-ageing and collagen-supporting products to your recommendations.")
         
         # Product preferences
         st.markdown(

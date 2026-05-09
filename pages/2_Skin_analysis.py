@@ -271,18 +271,250 @@ def get_product_recommendations(results):
 def render_ai_skin_analysis_page():
     local_css()
 
-    # Set the title of the page
-    st.markdown('<h1>AI Skin Analysis</h1>', unsafe_allow_html=True)
+    st.markdown('<h1>🔬 AI Skin Analysis</h1>', unsafe_allow_html=True)
     st.markdown(
         """
-            <div style="text-align: left; margin-bottom: 25px; font-family: 'Poppins', sans-serif;">
-                <p style="font-size: 1.2rem; color: #7c3c50; font-weight: 300;">
-                    Discover your perfect skincare routine powered by AI ✨
+            <div style="text-align: left; margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+                <p style="font-size: 1.1rem; color: #7c3c50; font-weight: 300;">
+                    Upload a selfie and get a personalised skincare report with routines for your gender, age & lifestyle ✨
                 </p>
             </div>
         """,
         unsafe_allow_html=True
     )
+    st.markdown('<div class="decorative-line"></div>', unsafe_allow_html=True)
+
+    # ── Profile inputs ───────────────────────────────────────────────────────
+    st.markdown("### 👤 Your Profile")
+    pc1, pc2, pc3 = st.columns(3)
+    with pc1:
+        gender = st.selectbox("Gender", ["Woman", "Man", "Non-binary / Prefer not to say"])
+    with pc2:
+        age_group = st.selectbox("Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
+    with pc3:
+        lifestyle = st.selectbox("Lifestyle / Climate", ["Urban / Polluted", "Suburban", "Outdoor / Active", "Dry Climate", "Humid Climate"])
+
+    st.markdown("---")
+
+    st.markdown("""
+    <div class="css-card">
+        <h3 style="margin-top: 0;">📸 How to get the best results</h3>
+        <p>Upload a clear, well-lit selfie <strong>without makeup</strong>. Face the camera directly and avoid filters. Natural light gives the most accurate analysis.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([3, 2])
+    with col1:
+        uploaded_file = st.file_uploader("Upload a clear selfie", type=["jpg", "jpeg", "png"])
+    with col2:
+        st.markdown("""
+        <div style="background-color: #f9f0f2; padding: 15px; border-radius: 10px; height: 90%; display: flex; align-items: center; justify-content: center; text-align: center;">
+            <div><span style="font-size: 3rem;">📸</span><p style="margin-top: 10px;">Your photo appears here</p></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Your uploaded photo', use_column_width=True)
+
+        if st.button("🔬 Analyse My Skin"):
+            progress_bar = st.progress(0)
+            status_text  = st.empty()
+            for i in range(101):
+                status_text.text(f"Analysing… {i}%")
+                progress_bar.progress(i)
+                time.sleep(0.01)
+            status_text.text("Analysis complete!")
+            st.success("✅ Your skin has been successfully analysed!")
+
+            results  = analyze_skin(image)
+            products = get_product_recommendations(results)
+
+            # Overall skin score (0–100, higher = healthier)
+            skin_score = max(0, 100 - int(
+                results['acne'] * 0.35 +
+                results['dryness'] * 0.25 +
+                results['oiliness'] * 0.20 +
+                results['sensitivity'] * 0.20
+            ))
+            score_color = "#2ecc71" if skin_score >= 70 else "#f39c12" if skin_score >= 40 else "#e74c3c"
+
+            # Score card
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg,#f9f0f2,#fff); border-radius:15px; padding:20px; text-align:center; margin-bottom:20px; box-shadow:0 4px 12px rgba(183,110,121,0.1);">
+                <h2 style="margin:0; color:#7c3c50;">Your Skin Health Score</h2>
+                <div style="font-size:4rem; font-weight:900; color:{score_color}; line-height:1.1;">{skin_score}</div>
+                <div style="color:#999; font-size:0.9rem;">out of 100</div>
+                <div style="margin-top:8px; font-size:1rem; color:#7c3c50; font-weight:600;">Detected Type: <strong>{results['skin_type']}</strong></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            tab1, tab2, tab3, tab4 = st.tabs(["📊 Analysis", "💧 Products", "🗓️ Routine", "🌿 Lifestyle Tips"])
+
+            with tab1:
+                st.subheader("Your Skin Profile")
+                col1, col2 = st.columns(2)
+                metrics = [
+                    ("Acne / Blemishes", results['acne'], "🔴"),
+                    ("Dryness", results['dryness'], "🏜️"),
+                    ("Oiliness", results['oiliness'], "💧"),
+                    ("Sensitivity / Redness", results['sensitivity'], "🌸"),
+                ]
+                for i, (label, val, icon) in enumerate(metrics):
+                    col = col1 if i % 2 == 0 else col2
+                    bar_color = "#e74c3c" if val > 70 else "#f39c12" if val > 40 else "#2ecc71"
+                    with col:
+                        st.markdown(f"""
+                        <div class="metric-container" style="margin-bottom:16px;">
+                            <div class="metric-title">{icon} {label}</div>
+                            <div class="metric-value" style="color:{bar_color};">{val}%</div>
+                            <div style="background:#f0f0f0;border-radius:8px;height:8px;margin:8px 0;">
+                                <div style="background:{bar_color};width:{val}%;height:8px;border-radius:8px;"></div>
+                            </div>
+                            <div style="color:#888;font-size:0.85rem;">{get_level_description(val)}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                # Gender-specific insights
+                st.markdown("---")
+                st.subheader("💡 Key Insights for You")
+                if gender == "Man":
+                    insights = [
+                        "Men's skin is ~25% thicker and produces more sebum — daily SPF is still essential.",
+                        "Shaving causes micro-abrasions; use an alcohol-free balm or serum post-shave.",
+                        "Niacinamide is a great all-rounder for men: reduces pores, controls oil, and evens tone.",
+                    ]
+                elif gender == "Woman":
+                    insights = [
+                        "Hormonal fluctuations throughout the month can cause breakouts — track your cycle.",
+                        "Estrogen supports collagen production; prioritise antioxidants as levels drop with age.",
+                        "SPF every morning is the single most effective anti-ageing step.",
+                    ]
+                else:
+                    insights = [
+                        "Everyone benefits from SPF, hydration, and a gentle cleanser — start there.",
+                        "Track your skin's response to products over 4–6 weeks before switching.",
+                        "Patch-test new actives on your jaw before applying to your full face.",
+                    ]
+                if age_group in ["36–45", "46–55", "55+"]:
+                    insights.append("Consider adding a retinol or peptide serum to support cell turnover and firmness.")
+                if lifestyle == "Urban / Polluted":
+                    insights.append("Use an antioxidant serum (Vitamin C) in the morning to neutralise pollution damage.")
+                if lifestyle in ["Outdoor / Active", "Humid Climate"]:
+                    insights.append("Reapply SPF every 90–120 minutes when outdoors, even on overcast days.")
+                for tip in insights:
+                    st.markdown(f"- {tip}")
+
+            with tab2:
+                st.subheader("Personalised Product Recommendations")
+                prod_cols = st.columns(3)
+                prod_map = [("🧼 Cleanser", products["cleanser"]), ("💧 Treatment", products["treatment"]), ("🧴 Moisturiser", products["moisturizer"])]
+                # Add gender-specific products
+                if gender == "Man":
+                    prod_map.append(("🪒 Post-Shave", "Alcohol-free soothing balm with allantoin and panthenol"))
+                    prod_map.append(("☀️ SPF", "Invisible matte broad-spectrum SPF 50"))
+                else:
+                    prod_map.append(("☀️ SPF", "Lightweight SPF 50+ with antioxidants"))
+                    prod_map.append(("🌙 Night Treatment", "Retinol 0.2–0.5% or peptide serum (PM use only)"))
+
+                for idx, (label, text) in enumerate(prod_map):
+                    with prod_cols[idx % 3]:
+                        st.markdown(f"""
+                        <div style="background:#fff;border-radius:12px;padding:15px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:12px;text-align:center;border-top:4px solid #b76e79;">
+                            <div style="font-size:1.5rem;">{label.split()[0]}</div>
+                            <h4 style="color:#7c3c50;margin:8px 0 6px;">{' '.join(label.split()[1:])}</h4>
+                            <p style="font-size:0.88rem;color:#555;">{text}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                st.markdown("#### 🧪 Key Ingredients to Look For")
+                ingredients = []
+                if results['acne'] > 40:
+                    ingredients += [("Salicylic Acid (BHA)", "Clears pores and reduces inflammation"), ("Benzoyl Peroxide", "Fights acne bacteria")]
+                if results['dryness'] > 40:
+                    ingredients += [("Hyaluronic Acid", "Attracts and retains moisture"), ("Ceramides", "Rebuilds the skin barrier")]
+                if results['oiliness'] > 40:
+                    ingredients += [("Niacinamide", "Regulates sebum production and minimises pores"), ("Zinc PCA", "Controls oil and has mild antibacterial action")]
+                if results['sensitivity'] > 40:
+                    ingredients += [("Centella Asiatica", "Calms redness and speeds repair"), ("Allantoin", "Soothes irritated skin")]
+                if age_group in ["36–45", "46–55", "55+"]:
+                    ingredients += [("Retinol / Retinal", "Boosts cell turnover and collagen"), ("Peptides", "Signal skin to produce more collagen")]
+                if not ingredients:
+                    ingredients = [("Niacinamide", "Great all-rounder for balanced skin"), ("Antioxidants (Vit C/E)", "Protects against environmental damage")]
+                for name, desc in ingredients:
+                    st.markdown(f"- **{name}:** {desc}")
+
+            with tab3:
+                st.subheader("Your Personalised Skincare Routine")
+                am_steps = ["Gentle cleanser", f"Treatment serum: {products['treatment']}", f"Moisturiser: {products['moisturizer']}", "SPF 50+ (non-negotiable!)"]
+                pm_steps = ["Cleanser (double-cleanse if you wore sunscreen/makeup)", f"Active treatment: {products['treatment']}", f"Moisturiser: {products['moisturizer']}"]
+                if gender == "Man":
+                    am_steps.insert(1, "Post-shave balm (on shaved areas)")
+                if results['dryness'] > 60:
+                    pm_steps.insert(2, "Hydrating toner or essence (layer for extra moisture)")
+                if results['dryness'] > 70:
+                    pm_steps.append("Occlusive balm on very dry patches to seal in moisture")
+                if age_group in ["36–45", "46–55", "55+"]:
+                    pm_steps.insert(2, "Retinol or peptide serum (2–3 nights per week, build up slowly)")
+
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown('<div class="css-card"><h3 style="margin-top:0;">☀️ Morning Routine</h3><ol>', unsafe_allow_html=True)
+                    for s in am_steps:
+                        st.markdown(f"<li>{s}</li>", unsafe_allow_html=True)
+                    st.markdown("</ol></div>", unsafe_allow_html=True)
+                with c2:
+                    st.markdown('<div class="css-card"><h3 style="margin-top:0;">🌙 Evening Routine</h3><ol>', unsafe_allow_html=True)
+                    for s in pm_steps:
+                        st.markdown(f"<li>{s}</li>", unsafe_allow_html=True)
+                    st.markdown("</ol></div>", unsafe_allow_html=True)
+
+                st.markdown('<div class="css-card"><h3 style="margin-top:0;">📅 Weekly Boosters</h3><ul>', unsafe_allow_html=True)
+                weekly = []
+                if results['acne'] > 40:
+                    weekly.append("1–2× weekly: Clay or charcoal mask to deep-clean pores")
+                if results['oiliness'] > 40:
+                    weekly.append("1× weekly: BHA chemical exfoliant (e.g. Paula's Choice 2% BHA Liquid)")
+                if results['dryness'] > 40:
+                    weekly.append("2–3× weekly: Hydrating sheet mask")
+                if results['sensitivity'] > 40:
+                    weekly.append("2× weekly: Soothing oat or aloe vera mask")
+                if not weekly:
+                    weekly.append("1× weekly: Gentle AHA exfoliant to maintain glow")
+                for w in weekly:
+                    st.markdown(f"<li>{w}</li>", unsafe_allow_html=True)
+                st.markdown("</ul></div>", unsafe_allow_html=True)
+
+            with tab4:
+                st.subheader("🌿 Lifestyle Tips for Better Skin")
+                life_tips = {
+                    "💧 Hydration": "Drink 2–3 litres of water daily. Skin hydration starts from within.",
+                    "😴 Sleep": "Aim for 7–9 hours. Skin repairs itself during deep sleep — this is when your PM products work hardest.",
+                    "🥗 Diet": "Prioritise omega-3 fatty acids (salmon, walnuts), antioxidant-rich berries, and leafy greens.",
+                    "🧘 Stress": "Chronic stress raises cortisol, triggering breakouts. Even 10 min of mindfulness helps.",
+                    "🚭 Avoid": "Smoking accelerates skin ageing by breaking down collagen. Limit alcohol — it dehydrates the skin.",
+                    "🏃 Exercise": "Cardio improves blood flow and skin cell renewal. Rinse your face post-workout to clear sweat.",
+                }
+                if lifestyle == "Urban / Polluted":
+                    life_tips["🏙️ Pollution Shield"] = "Double cleanse every evening to remove PM2.5 particles. Vitamin C in the morning acts as an antioxidant shield."
+                if lifestyle == "Outdoor / Active":
+                    life_tips["☀️ Sun Protection"] = "Reapply SPF every 90 min outdoors. Wear a wide-brimmed hat for additional coverage."
+                if lifestyle == "Dry Climate":
+                    life_tips["🌵 Dry Climate"] = "Use a humidifier indoors. Layer hydration: toner → serum → moisturiser → occlusive."
+                if lifestyle == "Humid Climate":
+                    life_tips["🌴 Humid Climate"] = "Lightweight gel moisturisers and water-based products will feel more comfortable. Don't skip SPF — clouds don't block UV."
+
+                for title, tip in life_tips.items():
+                    st.markdown(f"""
+                    <div style="background:#f9f0f2;border-radius:10px;padding:14px;margin-bottom:10px;border-left:4px solid #b76e79;">
+                        <strong>{title}</strong><br><span style="color:#555;font-size:0.93rem;">{tip}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown("---")
+                st.info("📅 **Want a professional opinion?** Book a virtual consultation with one of our skin experts on the **Consultations** page.")
+                if st.button("📅 Book a Consultation →"):
+                    st.switch_page("pages/6_Consultations.py")
         
     # Decorative element
     st.markdown('<div class="decorative-line"></div>', unsafe_allow_html=True)
@@ -325,230 +557,6 @@ def render_ai_skin_analysis_page():
             progress_bar = st.progress(0)
             status_text = st.empty()
             
-            # Simulate analysis progress
-            for i in range(101):
-                status_text.text(f"Analysis in progress: {i}%")
-                progress_bar.progress(i)
-                time.sleep(0.01)  # Faster progress for better UX
-            
-            status_text.text("Analysis complete!")
-            st.success("Your skin has been successfully analyzed!")
-            
-            # Analyze the skin
-            results = analyze_skin(image)
-            
-            # Create tabs for different sections
-            tab1, tab2, tab3 = st.tabs(["📊 Analysis Results", "💧 Product Recommendations", "📝 Skincare Routine"])
-            
-            with tab1:
-                st.subheader("Your Skin Profile")
-                st.markdown(f"<div style='background-color: #f9f0f2; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 20px;'><h3 style='margin-top: 0; color: #7c3c50;'>Detected Skin Type: {results['skin_type']}</h3></div>", unsafe_allow_html=True)
-                
-                # Display metrics in a grid
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown(f"""
-                    <div class="metric-container">
-                        <div class="metric-title">Acne Level</div>
-                        <div class="metric-value">{results['acne']}%</div>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                        <div>{get_level_description(results['acne'])}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                    <div class="metric-container" style="margin-top: 20px;">
-                        <div class="metric-title">Dryness Level</div>
-                        <div class="metric-value">{results['dryness']}%</div>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                        <div>{get_level_description(results['dryness'])}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="metric-container">
-                        <div class="metric-title">Oiliness Level</div>
-                        <div class="metric-value">{results['oiliness']}%</div>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                        <div>{get_level_description(results['oiliness'])}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                    <div class="metric-container" style="margin-top: 20px;">
-                        <div class="metric-title">Sensitivity Level</div>
-                        <div class="metric-value">{results['sensitivity']}%</div>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                        <div>{get_level_description(results['sensitivity'])}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            with tab2:
-                st.subheader("Personalized Product Recommendations")
-                
-                # Get product recommendations
-                products = get_product_recommendations(results)
-                
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    st.markdown("""
-                    <div style="background-color: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 100%; text-align: center;">
-                        <div style="font-size: 2.5rem; margin-bottom: 10px;">🧼</div>
-                        <h3 style="margin-top: 0; font-size: 1.2rem !important;">Cleanser</h3>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.write(products["cleanser"])
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown("""
-                    <div style="background-color: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 100%; text-align: center;">
-                        <div style="font-size: 2.5rem; margin-bottom: 10px;">💧</div>
-                        <h3 style="margin-top: 0; font-size: 1.2rem !important;">Treatment</h3>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.write(products["treatment"])
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
-                
-                with col3:
-                    st.markdown("""
-                    <div style="background-color: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 100%; text-align: center;">
-                        <div style="font-size: 2.5rem; margin-bottom: 10px;">🧴</div>
-                        <h3 style="margin-top: 0; font-size: 1.2rem !important;">Moisturizer</h3>
-                        <div class="decorative-line" style="margin: 10px 0;"></div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.write(products["moisturizer"])
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                st.markdown("""
-                <div class="css-card" style="background-color: #f9f0f2;">
-                    <h3 style="margin-top: 0;">Key Ingredients to Look For</h3>
-                    <ul>
-                """, unsafe_allow_html=True)
-                
-                if results['acne'] > 50:
-                    st.markdown("<li><strong>Salicylic Acid:</strong> Helps clear pores and reduce inflammation</li>", unsafe_allow_html=True)
-                    st.markdown("<li><strong>Benzoyl Peroxide:</strong> Fights acne-causing bacteria</li>", unsafe_allow_html=True)
-                
-                if results['dryness'] > 50:
-                    st.markdown("<li><strong>Hyaluronic Acid:</strong> Attracts and retains moisture</li>", unsafe_allow_html=True)
-                    st.markdown("<li><strong>Ceramides:</strong> Strengthen skin barrier and prevent moisture loss</li>", unsafe_allow_html=True)
-                
-                if results['oiliness'] > 50:
-                    st.markdown("<li><strong>Niacinamide:</strong> Regulates sebum production</li>", unsafe_allow_html=True)
-                    st.markdown("<li><strong>Clay:</strong> Absorbs excess oil</li>", unsafe_allow_html=True)
-                
-                if results['sensitivity'] > 50:
-                    st.markdown("<li><strong>Centella Asiatica:</strong> Soothes and calms irritation</li>", unsafe_allow_html=True)
-                    st.markdown("<li><strong>Allantoin:</strong> Relieves skin discomfort</li>", unsafe_allow_html=True)
-                
-                st.markdown("""
-                    </ul>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with tab3:
-                st.subheader("Your Customized Skincare Routine")
-                
-                # Morning routine
-                st.markdown("""
-                <div class="css-card">
-                    <h3 style="margin-top: 0;">☀️ Morning Routine</h3>
-                    <ol>
-                """, unsafe_allow_html=True)
-                
-                st.markdown(f"<li><strong>Cleanse:</strong> {products['cleanser']}</li>", unsafe_allow_html=True)
-                
-                if results['acne'] > 60 or results['oiliness'] > 60:
-                    st.markdown(f"<li><strong>Treatment:</strong> {products['treatment']}</li>", unsafe_allow_html=True)
-                
-                st.markdown(f"<li><strong>Moisturize:</strong> {products['moisturizer']}</li>", unsafe_allow_html=True)
-                st.markdown("<li><strong>Protect:</strong> Broad-spectrum SPF 30+ sunscreen</li>", unsafe_allow_html=True)
-                
-                st.markdown("""
-                    </ol>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Evening routine
-                st.markdown("""
-                <div class="css-card">
-                    <h3 style="margin-top: 0;">🌙 Evening Routine</h3>
-                    <ol>
-                """, unsafe_allow_html=True)
-                
-                st.markdown(f"<li><strong>Cleanse:</strong> {products['cleanser']}</li>", unsafe_allow_html=True)
-                
-                # Add double cleanse for oily skin
-                if results['oiliness'] > 60:
-                    st.markdown("<li><strong>Double Cleanse:</strong> Start with an oil cleanser before your regular cleanser</li>", unsafe_allow_html=True)
-                
-                st.markdown(f"<li><strong>Treatment:</strong> {products['treatment']}</li>", unsafe_allow_html=True)
-                
-                # Add extra hydration for dry skin
-                if results['dryness'] > 60:
-                    st.markdown("<li><strong>Extra Hydration:</strong> Layer a hydrating toner or essence</li>", unsafe_allow_html=True)
-                
-                st.markdown(f"<li><strong>Moisturize:</strong> {products['moisturizer']}</li>", unsafe_allow_html=True)
-                
-                # Add occlusive for very dry skin
-                if results['dryness'] > 70:
-                    st.markdown("<li><strong>Seal:</strong> Apply a thin layer of occlusive balm to lock in moisture</li>", unsafe_allow_html=True)
-                
-                st.markdown("""
-                    </ol>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Weekly treatments
-                st.markdown("""
-                <div class="css-card">
-                    <h3 style="margin-top: 0;">📅 Weekly Treatments</h3>
-                    <ul>
-                """, unsafe_allow_html=True)
-                
-                if results['acne'] > 50:
-                    st.markdown("<li><strong>1-2x Weekly:</strong> Clay mask to deep clean pores</li>", unsafe_allow_html=True)
-                
-                if results['dryness'] > 50:
-                    st.markdown("<li><strong>2-3x Weekly:</strong> Hydrating sheet mask</li>", unsafe_allow_html=True)
-                
-                if results['oiliness'] > 50:
-                    st.markdown("<li><strong>1x Weekly:</strong> Chemical exfoliation with BHA</li>", unsafe_allow_html=True)
-                
-                if results['sensitivity'] > 50:
-                    st.markdown("<li><strong>2x Weekly:</strong> Soothing mask with oat or aloe</li>", unsafe_allow_html=True)
-                else:
-                    st.markdown("<li><strong>1x Weekly:</strong> Gentle exfoliation (AHA for dry skin, BHA for oily skin)</li>", unsafe_allow_html=True)
-                
-                st.markdown("""
-                    </ul>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Call to action
-                st.markdown("""
-                <div style="background-color: #f9f0f2; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center;">
-                    <h3 style="margin-top: 0;">Want a Professional Consultation?</h3>
-                    <p>Book a virtual appointment with one of our skincare specialists for a more in-depth analysis and personalized recommendations.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Book appointment button
-                if st.button("Book a Consultation"):
-                    st.success("Thank you for your interest! Our team will contact you to schedule your consultation.")
-
 def get_level_description(value):
     if value < 30:
         return "Low"
@@ -557,6 +565,5 @@ def get_level_description(value):
     else:
         return "High"
 
-# Call the function to render the page
-if __name__ == "__main__":
-    render_ai_skin_analysis_page()
+render_ai_skin_analysis_page()
+

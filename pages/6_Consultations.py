@@ -347,107 +347,147 @@ def local_css():
     
 def render_consultations_page():
     local_css()
-    
-    # Consultation form
-    st.markdown('<h1>Consultation</h1>', unsafe_allow_html=True)
-    st.markdown(
-            """
-            <div style="text-align: left; margin-bottom: 25px; font-family: 'Poppins', sans-serif;">
-                <p style="font-size: 1.2rem; color: #7c3c50; font-weight: 300;">
-                    Discover your perfect skincare routine ✨
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True
-    )
-    # Decorative element
+
+    st.markdown('<h1>Book a Consultation</h1>', unsafe_allow_html=True)
+    st.markdown("""
+    <p style="font-size:1.1rem;color:#7c3c50;font-family:'Poppins',sans-serif;">
+        Connect with a certified expert — skincare, grooming, makeup or hair. Tailored advice just for you. ✨
+    </p>
+    """, unsafe_allow_html=True)
     st.markdown('<div class="decorative-line"></div>', unsafe_allow_html=True)
-        
-    # Create columns for a two-column form layout
-    col1, col2 = st.columns([1, 1])
-    
-    with st.form(key='consultation_form'):
-        # First column - Personal Information
-        with col1:
-            st.subheader("Personal Information")
-            name = st.text_input("Full Name")
-            email = st.text_input("Email Address")
-            phone = st.text_input("Phone Number")
-            
-            st.subheader("Your Skin Profile")
-            skin_type = st.selectbox(
-                "Skin Type",
-                ["Select your skin type", "Dry", "Oily", "Combination", "Normal", "Sensitive"]
-            )
-            
-            skin_concerns = st.multiselect(
-                "Skin Concerns (select all that apply)",
-                ["Acne", "Fine Lines & Wrinkles", "Hyperpigmentation", "Rosacea", 
-                 "Dryness", "Oiliness", "Sensitivity", "Uneven Texture", "Dark Circles"]
-            )
-            
-            current_routine = st.text_area("Briefly describe your current skincare routine")
-        
-        # Second column - Consultation Details
-        with col2:
-            st.subheader("Consultation Details")
-            
-            expert = st.selectbox(
-                "Preferred Expert (Optional)",
-                ["No preference", "Dr. Sophia Chen", "James Rivera", "Aisha Johnson"]
-            )
-            
-            consultation_type = st.radio(
-                "Consultation Type",
-                ["Virtual (Video Call)", "In-Person"]
-            )
-            
-            # Date picker with some constraints
-            min_date = datetime.date.today() + datetime.timedelta(days=1)
-            max_date = min_date + datetime.timedelta(days=30)
-            consultation_date = st.date_input(
-                "Preferred Date", 
-                min_value=min_date,
-                max_value=max_date,
-                value=min_date + datetime.timedelta(days=3)
-            )
-            
-            time_slots = [
-                "9:00 AM - 10:00 AM", 
-                "10:30 AM - 11:30 AM",
-                "1:00 PM - 2:00 PM", 
-                "2:30 PM - 3:30 PM",
-                "4:00 PM - 5:00 PM"
-            ]
-            consultation_time = st.selectbox("Preferred Time Slot", time_slots)
-            
-            additional_notes = st.text_area("Any additional information or questions")
-        
-        # Submit button centered at bottom
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            submit_button = st.form_submit_button("Schedule Consultation")
-            
-    # Handle form submission
-    if submit_button:
-        if name and email and skin_type != "Select your skin type" and len(skin_concerns) > 0:
-            st.success("Thank you for your request! We've received your consultation details and will send a confirmation email shortly.")
-            st.markdown("""
-            <div style="background-color: var(--neutral-light); border-radius: 10px; padding: 1rem; margin-top: 1rem;">
-                <p><strong>Next Steps:</strong></p>
-                <ul>
-                    <li>You'll receive a confirmation email within 24 hours</li>
-                    <li>Our team will send you a short pre-consultation questionnaire</li>
-                    <li>We'll provide instructions for your virtual session or in-person visit</li>
-                </ul>
-                <p style="margin-top: 1rem;">If you need to reschedule, please contact us at <span style="color: var(--primary-color);">support@beautybuzz.com</span></p>
+
+    # ── Expert cards ────────────────────────────────────────────────────────────
+    st.markdown("### 👩‍⚕️ Meet Our Experts")
+    experts = [
+        {"name": "Dr. Sophia Chen", "role": "Dermatologist", "icon": "🏥",
+         "specialties": ["Acne & Breakouts", "Anti-Ageing", "Rosacea & Eczema", "Prescription Skincare"],
+         "exp": "12 years", "lang": "English, Mandarin", "rating": "⭐ 4.9"},
+        {"name": "James Rivera", "role": "Men's Grooming Specialist & Barber", "icon": "✂️",
+         "specialties": ["Beard Care & Styling", "Men's Skincare Routines", "Hair Loss & Thinning", "Scalp Health"],
+         "exp": "9 years", "lang": "English, Spanish", "rating": "⭐ 4.8"},
+        {"name": "Aisha Johnson", "role": "Certified Makeup Artist & Colour Expert", "icon": "💄",
+         "specialties": ["Makeup for All Skin Tones", "Bridal & Event Looks", "Colour Theory", "Clean Beauty"],
+         "exp": "11 years", "lang": "English, French", "rating": "⭐ 4.9"},
+        {"name": "Priya Mehta", "role": "Trichologist & Hair Specialist", "icon": "💇",
+         "specialties": ["Hair Loss Diagnosis", "Scalp Treatments", "Natural Hair Care", "Hair Colour Safety"],
+         "exp": "8 years", "lang": "English, Hindi", "rating": "⭐ 4.7"},
+    ]
+
+    expert_cols = st.columns(4)
+    for i, exp in enumerate(experts):
+        with expert_cols[i]:
+            st.markdown(f"""
+            <div style="background:white;border-radius:16px;padding:18px 14px;text-align:center;
+                        box-shadow:0 4px 16px rgba(183,110,121,0.10);margin-bottom:8px;min-height:260px;">
+                <div style="font-size:2.2rem;">{exp['icon']}</div>
+                <b style="font-size:0.97rem;color:#403b3e;">{exp['name']}</b><br>
+                <span style="font-size:0.78rem;color:#7c3c50;font-weight:600;">{exp['role']}</span><br>
+                <span style="font-size:0.75rem;color:#888;">{exp['rating']} · {exp['exp']} exp</span><br>
+                <hr style="margin:8px 0;">
+                {''.join(f'<span style="display:inline-block;background:#fce4e8;color:#7c3c50;border-radius:20px;padding:2px 8px;font-size:0.7rem;margin:2px;">{s}</span>' for s in exp['specialties'])}
+                <br><span style="font-size:0.73rem;color:#aaa;">🌐 {exp['lang']}</span>
             </div>
             """, unsafe_allow_html=True)
-        else:
-            st.error("Please fill out all required fields to schedule your consultation.")
 
-    
+    st.markdown("---")
+
+    # ── Booking form ────────────────────────────────────────────────────────────
+    st.markdown("### 📅 Schedule Your Consultation")
+    with st.form(key="consultation_form"):
+        c1, c2 = st.columns(2)
+
+        with c1:
+            st.markdown("#### 👤 About You")
+            name = st.text_input("Full Name *")
+            email = st.text_input("Email Address *")
+            phone = st.text_input("Phone Number (optional)")
+            gender = st.selectbox("I identify as", ["Woman", "Man", "Non-binary", "Prefer not to say"])
+            age_group = st.selectbox("Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
+
+            st.markdown("#### 🧴 Your Skin & Hair Profile")
+            skin_type = st.selectbox("Skin Type", ["Select…", "Normal", "Oily", "Dry", "Combination", "Sensitive"])
+            skin_concerns = st.multiselect("Primary Concerns",
+                ["Acne / Breakouts", "Fine Lines & Wrinkles", "Hyperpigmentation / Dark Spots",
+                 "Rosacea / Redness", "Dryness / Flakiness", "Oiliness", "Sensitivity / Eczema",
+                 "Uneven Texture", "Dark Circles", "Hair Loss / Thinning", "Beard Care",
+                 "Scalp Issues", "Makeup Advice", "Bridal / Event Prep"])
+            current_routine = st.text_area("Describe your current skincare or grooming routine (optional)", height=90)
+
+        with c2:
+            st.markdown("#### 📋 Consultation Details")
+            expert_choice = st.selectbox("Preferred Expert", ["No Preference"] + [e["name"] for e in experts])
+            consult_type = st.radio("Consultation Format", ["🎥 Video Call (Virtual)", "🏢 In-Person Visit"])
+            consult_goal = st.selectbox("Primary Goal",
+                ["Build a personalised routine", "Solve a specific skin concern",
+                 "Pre-event / bridal prep", "Men's grooming plan", "Hair & scalp care",
+                 "Makeup coaching", "General advice"])
+            budget = st.select_slider("Budget for Products / Services", options=["Under $50", "$50–$100", "$100–$200", "$200+"])
+
+            min_date = datetime.date.today() + datetime.timedelta(days=1)
+            consult_date = st.date_input("Preferred Date", min_value=min_date,
+                                          max_value=min_date + datetime.timedelta(days=60),
+                                          value=min_date + datetime.timedelta(days=3))
+            time_slots = ["9:00 AM", "10:30 AM", "12:00 PM", "1:30 PM", "3:00 PM", "4:30 PM", "6:00 PM"]
+            consult_time = st.selectbox("Preferred Time Slot", time_slots)
+            notes = st.text_area("Additional questions or information (optional)", height=90)
+
+        _, btn_col, _ = st.columns([1, 2, 1])
+        with btn_col:
+            submitted = st.form_submit_button("✨ Request Consultation")
+
+    if submitted:
+        errors = []
+        if not name.strip():
+            errors.append("Full Name is required.")
+        if not email.strip() or "@" not in email:
+            errors.append("A valid Email Address is required.")
+        if skin_type == "Select…":
+            errors.append("Please select your Skin Type.")
+        if not skin_concerns:
+            errors.append("Please select at least one Primary Concern.")
+
+        if errors:
+            for e in errors:
+                st.error(e)
+        else:
+            st.success(f"🎉 Thank you, **{name}**! Your consultation request has been received.")
+            st.markdown(f"""
+            <div style="background:#fff8f9;border-radius:14px;padding:18px 22px;border:1px solid #f0d0d5;margin-top:10px;">
+                <b>📋 Booking Summary</b><br><br>
+                <b>Expert:</b> {expert_choice}<br>
+                <b>Format:</b> {consult_type}<br>
+                <b>Date & Time:</b> {consult_date.strftime('%A, %d %B %Y')} at {consult_time}<br>
+                <b>Goal:</b> {consult_goal}<br><br>
+                <b>Next Steps:</b><br>
+                • Confirmation email will arrive within 24 hours at <b>{email}</b><br>
+                • You'll receive a short pre-consultation questionnaire to help your expert prepare<br>
+                • {"A secure video link will be shared 1 hour before your session." if "Video" in consult_type else "Your in-person location and directions will be provided."}<br><br>
+                <span style="color:#7c3c50;">Need to reschedule? Contact us at <b>support@beautybuzzi.com</b></span>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── FAQ Section ─────────────────────────────────────────────────────────────
+    st.markdown("### ❓ Frequently Asked Questions")
+    faqs = [
+        ("How long is a consultation?", "Standard consultations are 45–60 minutes. Follow-up sessions are 20–30 minutes."),
+        ("Do you offer consultations for men?", "Absolutely. James Rivera specialises in men's grooming, skincare and beard care. All our experts are trained to advise everyone regardless of gender."),
+        ("What should I prepare before my session?", "Take note of the products you currently use, any skin reactions you've had, and bring photos of your skin (no makeup) in natural light if possible."),
+        ("Are the video calls secure?", "Yes. We use end-to-end encrypted video platforms. No session recordings are stored without explicit consent."),
+        ("Can I get product recommendations after?", "Yes. Your expert will send a personalised product list within 48 hours of your session via email."),
+        ("Is there a cancellation policy?", "You can reschedule or cancel up to 24 hours before your session with no charge. Within 24 hours, a 50% fee applies."),
+        ("Do you accept health insurance?", "Dermatology consultations with Dr. Sophia Chen may be partially covered depending on your provider. We provide receipts for reimbursement claims."),
+    ]
+    for q, a in faqs:
+        with st.expander(f"❓ {q}"):
+            st.write(a)
+
+    st.markdown("---")
+    st.caption("© 2025 BeautyBuzzi | All consultations are confidential and conducted by certified professionals.")
+
 
 # Call the function to render the page
 if __name__ == "__main__":
     render_consultations_page()
+

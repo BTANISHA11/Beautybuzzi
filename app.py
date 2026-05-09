@@ -1,3 +1,4 @@
+import io
 import os
 import numpy as np
 from PIL import Image, ImageColor
@@ -27,7 +28,7 @@ def local_css():
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
-        max-width: 800px;
+        max-width: 900px;
     }
     
     /* Header styling */
@@ -52,20 +53,39 @@ def local_css():
         margin: 20px 0;
         border-radius: 2px;
     }
+    .stButton > button {
+        border-radius: 25px !important;
+        background: linear-gradient(90deg, #b76e79, #7c3c50) !important;
+        color: white !important;
+        border: none !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1.5rem !important;
+    }
+    .badge {
+        display: inline-block;
+        background: linear-gradient(90deg, #b76e79, #7c3c50);
+        color: white;
+        border-radius: 20px;
+        padding: 3px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
       </style>
     """, unsafe_allow_html=True)
     
     
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="BeautyBuzzi – Virtual Try-On", page_icon="💄")
 local_css()
 
-st.markdown('<h1>Makeup try on</h1>', unsafe_allow_html=True)
+st.markdown('<h1>✨ Virtual Beauty Try-On</h1>', unsafe_allow_html=True)
 st.markdown(
     """
-            <div style="text-align: left; margin-bottom: 25px; font-family: 'Poppins', sans-serif;">
-                <p style="font-size: 1.2rem; color: #7c3c50; font-weight: 300;">
-                    Discover your perfect skincare routine ✨
+            <div style="text-align: left; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+                <p style="font-size: 1.1rem; color: #7c3c50; font-weight: 300;">
+                    Real-time AI-powered makeup & grooming – for everyone 💫
                 </p>
             </div>
     """,
@@ -82,8 +102,20 @@ with open("static/styles.css") as f:
 DEMO_IMAGE = 'imgs/116.jpg'
 HAIRSTYLE_DIR = 'hairstyles/'
 
+# ── Sidebar ──────────────────────────────────────────────────────────────────
+st.sidebar.markdown("## 🎨 Personalise Your Look")
+
+# Gender selector
+gender = st.sidebar.radio(
+    "👤 I identify as",
+    ["👩 Woman", "👨 Man", "🌈 Non-binary"],
+    index=0,
+)
+
+st.sidebar.markdown("---")
+
 # Upload image
-img_file_buffer = st.sidebar.file_uploader("📤 Upload an image", type=["jpg", "jpeg", "png"])
+img_file_buffer = st.sidebar.file_uploader("📤 Upload your photo", type=["jpg", "jpeg", "png"])
 if img_file_buffer:
     image = np.array(Image.open(img_file_buffer).convert("RGB"))
     demo_image = img_file_buffer
@@ -100,49 +132,102 @@ cp = 'cp/79999_iter.pth'
 parsing = evaluate(demo_image, cp)
 parsing = cv2.resize(parsing, image.shape[0:2], interpolation=cv2.INTER_NEAREST)
 
-# Color pickers
-hair_color = st.sidebar.color_picker('🖌️ Hair Color', '#000000')
-lip_color = st.sidebar.color_picker('💋 Lip Color', '#edbad1')
-foundation_color = st.sidebar.color_picker('🧴 Foundation Color (full face)', '#f4c2c2')
-# eyeliner_color = st.sidebar.color_picker('👁️ Eyeliner Color', '#000000')
-# eyeshadow_color = st.sidebar.color_picker('👁️ Eyeshadow Color', '#d1a6e0')
-# blush_color = st.sidebar.color_picker('🌸 Blush Color', '#ffcccb')
+st.sidebar.markdown("---")
 
-hair_color = ImageColor.getcolor(hair_color, "RGB")
-lip_color = ImageColor.getcolor(lip_color, "RGB")
-foundation_color = ImageColor.getcolor(foundation_color, "RGB")
-# eyeliner_color = ImageColor.getcolor(eyeliner_color, "RGB")
-# eyeshadow_color = ImageColor.getcolor(eyeshadow_color, "RGB")
-# blush_color = ImageColor.getcolor(blush_color, "RGB")
+# ── Makeup / Grooming controls based on gender ────────────────────────────────
+if "Man" in gender:
+    st.sidebar.markdown("### 💈 Men's Grooming")
+    hair_color    = st.sidebar.color_picker('🖤 Hair Color', '#1a0a00')
+    beard_color   = st.sidebar.color_picker('🧔 Beard / Stubble Color', '#2c1a0e')
+    brow_color    = st.sidebar.color_picker('✏️ Eyebrow Color', '#1a0a00')
+    lip_color_hex = st.sidebar.color_picker('👄 Lip Tint (optional)', '#c77a6a')
+    apply_lip     = st.sidebar.checkbox("Apply lip tint", value=False)
+    foundation_color = st.sidebar.color_picker('🧴 Skin Tone / Foundation', '#f4c2a0')
+    intensity     = st.sidebar.slider("🔆 Effect Intensity", 0.1, 1.0, 0.5, 0.05)
+else:
+    st.sidebar.markdown("### 💄 Makeup Studio")
+    hair_color       = st.sidebar.color_picker('🖌️ Hair Color', '#000000')
+    lip_color_hex    = st.sidebar.color_picker('💋 Lip Color', '#edbad1')
+    foundation_color = st.sidebar.color_picker('🧴 Foundation', '#f4c2c2')
+    eyeshadow_color  = st.sidebar.color_picker('👁️ Eyeshadow', '#d1a6e0')
+    blush_color      = st.sidebar.color_picker('🌸 Blush', '#ffcccb')
+    eyeliner_color   = st.sidebar.color_picker('✏️ Eyeliner', '#000000')
+    intensity        = st.sidebar.slider("🔆 Effect Intensity", 0.1, 1.0, 0.7, 0.05)
 
-# Apply hair, lips, eyeliner, eyeshadow, and blush
-for part, color in zip([17, 12, 13, 14, 15, 16], [hair_color, lip_color, lip_color]):
-    image = apply_makeup(image, parsing, part, color)
+st.sidebar.markdown("---")
 
-# Apply foundation to entire face area (part 1 includes nose)
-face_parts = [1, 2, 3, 10, 11]
-foundation_mask = np.isin(parsing, face_parts)
-image = apply_region_blend(image, foundation_mask, foundation_color, alpha=0.35)
+# ── Apply makeup / grooming ──────────────────────────────────────────────────
+hair_rgb        = ImageColor.getcolor(hair_color, "RGB")
+foundation_rgb  = ImageColor.getcolor(foundation_color, "RGB")
 
-# Hairstyle recommendation & overlay
-# if st.sidebar.button("🎯 Recommend & Apply Best Hairstyle"):
-#     face_shape = get_face_shape(original_image)
-#     st.sidebar.write(f"🧠 Detected Face Shape: **{face_shape}**")
+if "Man" in gender:
+    beard_rgb = ImageColor.getcolor(beard_color, "RGB")
+    brow_rgb  = ImageColor.getcolor(brow_color, "RGB")
+    lip_rgb   = ImageColor.getcolor(lip_color_hex, "RGB")
 
-#     recommended_file = recommend_hairstyle(face_shape)
-#     if recommended_file:
-#         st.sidebar.success(f"✨ Recommended Hairstyle: `{recommended_file}`")
-#         hairstyle_path = os.path.join(HAIRSTYLE_DIR, recommended_file)
-#         image = apply_hairstyle_overlay(image, hairstyle_path)
-#     else:
-#         st.sidebar.warning("❌ No suitable hairstyle found.")
+    # Hair
+    image = apply_makeup(image, parsing, 17, hair_rgb)
+    # Eyebrows (parts 2=left brow, 3=right brow)
+    image = apply_makeup(image, parsing, 2, brow_rgb)
+    image = apply_makeup(image, parsing, 3, brow_rgb)
+    # Optional lip tint
+    if apply_lip:
+        for part in [12, 13]:
+            image = apply_makeup(image, parsing, part, lip_rgb)
+    # Foundation (light blend)
+    face_parts = [1, 2, 3, 10, 11]
+    foundation_mask = np.isin(parsing, face_parts)
+    image = apply_region_blend(image, foundation_mask, foundation_rgb, alpha=intensity * 0.3)
+else:
+    lip_rgb      = ImageColor.getcolor(lip_color_hex, "RGB")
+    eyeshadow_rgb = ImageColor.getcolor(eyeshadow_color, "RGB")
+    blush_rgb    = ImageColor.getcolor(blush_color, "RGB")
 
-# Display results
+    # Hair
+    image = apply_makeup(image, parsing, 17, hair_rgb)
+    # Lips (upper & lower)
+    for part in [12, 13]:
+        image = apply_makeup(image, parsing, part, lip_rgb)
+    # Eyebrows
+    for part in [2, 3]:
+        image = apply_makeup(image, parsing, part, ImageColor.getcolor(hair_color, "RGB"))
+    # Eyeshadow (left eye=4, right eye=5, left eyelid=6, right eyelid=7)
+    for part in [4, 5]:
+        image = apply_region_blend(image, parsing == part, eyeshadow_rgb, alpha=intensity * 0.5)
+    # Blush (cheeks – approximate using face sides via parsing part 1)
+    face_mask = parsing == 1
+    image = apply_region_blend(image, face_mask, blush_rgb, alpha=intensity * 0.15)
+    # Foundation
+    face_parts = [1, 2, 3, 10, 11]
+    foundation_mask = np.isin(parsing, face_parts)
+    image = apply_region_blend(image, foundation_mask, foundation_rgb, alpha=intensity * 0.35)
+
+# ── Display results ──────────────────────────────────────────────────────────
 col1, col2 = st.columns(2)
 with col1:
-    st.subheader("Original Image")
+    st.markdown("#### 📷 Original")
     st.image(original_image, use_column_width=True)
 
 with col2:
-    st.subheader("Transformed Image")
+    label = "💈 Groomed Look" if "Man" in gender else "💄 Transformed Look"
+    st.markdown(f"#### {label}")
     st.image(image, use_column_width=True)
+
+# Download button
+result_pil = Image.fromarray(image.astype(np.uint8))
+buf = io.BytesIO()
+result_pil.save(buf, format="PNG")
+buf.seek(0)
+st.download_button(
+    label="⬇️ Download Result",
+    data=buf,
+    file_name="beautybuzzi_result.png",
+    mime="image/png",
+)
+
+# ── Quick tip ────────────────────────────────────────────────────────────────
+st.markdown("---")
+if "Man" in gender:
+    st.info("💡 **Men's tip:** Use the beard color picker to try different facial hair shades before your next barber visit!")
+else:
+    st.info("💡 **Pro tip:** Try matching your blush color with your lip color for a natural, cohesive look!")
