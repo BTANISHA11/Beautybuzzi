@@ -13,7 +13,7 @@ except Exception as e:
     msg = """OpenCV (`cv2`) is not installed in this environment.
 Install it with:
 ```
-python -m pip install opencv-python
+python -m pip install opencv-python-headless
 ```
 Or install all dependencies: `python -m pip install -r requirements.txt`"""
     st.error(msg)

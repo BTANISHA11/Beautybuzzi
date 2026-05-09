@@ -316,10 +316,14 @@ def render_ai_skin_analysis_page():
     col1, col2 = st.columns([3, 2])
     with col1:
         if input_mode == "Upload Photo":
-            uploaded_file = st.file_uploader("Upload a clear selfie", type=["jpg", "jpeg", "png"])
+            uploaded_file = st.file_uploader(
+                "Upload a clear selfie",
+                type=["jpg", "jpeg", "png"],
+                key="skin_analysis_upload",
+            )
             camera_file = None
         else:
-            camera_file = st.camera_input("Take a snapshot")
+            camera_file = st.camera_input("Take a snapshot", key="skin_analysis_camera")
             uploaded_file = None
     with col2:
         st.markdown("""
@@ -334,7 +338,7 @@ def render_ai_skin_analysis_page():
         image = Image.open(input_file).convert("RGB")
         st.image(image, caption='Your photo', width="stretch")
 
-        if st.button("🔬 Analyse My Skin"):
+        if st.button("🔬 Analyse My Skin", key="skin_analysis_run"):
             progress_bar = st.progress(0)
             status_text  = st.empty()
             for i in range(101):
@@ -616,7 +620,7 @@ def render_ai_skin_analysis_page():
 
                 st.markdown("---")
                 st.info("📅 **Want a professional opinion?** Book a virtual consultation with one of our skin experts on the **Consultations** page.")
-                if st.button("📅 Book a Consultation →"):
+                if st.button("📅 Book a Consultation →", key="skin_analysis_book_consultation"):
                     st.switch_page("pages/6_Consultations.py")
 
             with tab5:
