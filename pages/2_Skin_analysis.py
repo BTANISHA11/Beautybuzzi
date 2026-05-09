@@ -2,6 +2,11 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import time
+import io
+import json
+from datetime import datetime
+
+from mediapipe_makeup import MEDIAPIPE_OK, detect_skin_tone, get_landmarks, match_foundation
 
 def local_css():
     st.markdown("""
@@ -271,6 +276,9 @@ def get_product_recommendations(results):
 def render_ai_skin_analysis_page():
     local_css()
 
+    if "skin_analysis_history" not in st.session_state:
+        st.session_state.skin_analysis_history = []
+
     st.markdown('<h1>🔬 AI Skin Analysis</h1>', unsafe_allow_html=True)
     st.markdown(
         """
@@ -303,9 +311,16 @@ def render_ai_skin_analysis_page():
     </div>
     """, unsafe_allow_html=True)
 
+    input_mode = st.radio("Input Mode", ["Upload Photo", "Webcam Snapshot"], horizontal=True)
+
     col1, col2 = st.columns([3, 2])
     with col1:
-        uploaded_file = st.file_uploader("Upload a clear selfie", type=["jpg", "jpeg", "png"])
+        if input_mode == "Upload Photo":
+            uploaded_file = st.file_uploader("Upload a clear selfie", type=["jpg", "jpeg", "png"])
+            camera_file = None
+        else:
+            camera_file = st.camera_input("Take a snapshot")
+            uploaded_file = None
     with col2:
         st.markdown("""
         <div style="background-color: #f9f0f2; padding: 15px; border-radius: 10px; height: 90%; display: flex; align-items: center; justify-content: center; text-align: center;">
@@ -313,9 +328,11 @@ def render_ai_skin_analysis_page():
         </div>
         """, unsafe_allow_html=True)
 
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption='Your uploaded photo', use_column_width=True)
+    input_file = uploaded_file or camera_file
+
+    if input_file is not None:
+        image = Image.open(input_file).convert("RGB")
+        st.image(image, caption='Your photo', width="stretch")
 
         if st.button("🔬 Analyse My Skin"):
             progress_bar = st.progress(0)
@@ -329,6 +346,10 @@ def render_ai_skin_analysis_page():
 
             results  = analyze_skin(image)
             products = get_product_recommendations(results)
+            image_rgb = np.array(image)
+            landmarks = get_landmarks(image_rgb)
+            skin_lab, skin_rgb = detect_skin_tone(image_rgb, landmarks) if landmarks is not None else (None, None)
+            foundation_matches = match_foundation(skin_lab) if skin_lab is not None else []
 
             # Overall skin score (0–100, higher = healthier)
             skin_score = max(0, 100 - int(
@@ -349,7 +370,49 @@ def render_ai_skin_analysis_page():
             </div>
             """, unsafe_allow_html=True)
 
-            tab1, tab2, tab3, tab4 = st.tabs(["📊 Analysis", "💧 Products", "🗓️ Routine", "🌿 Lifestyle Tips"])
+            report_payload = {
+                "generated_at": datetime.now().isoformat(timespec="seconds"),
+                "gender": gender,
+                "age_group": age_group,
+                "lifestyle": lifestyle,
+                "skin_score": skin_score,
+                "results": results,
+                "products": products,
+                "foundation_matches": [
+                    {"distance": round(dist, 2), "name": name, "hex": hex_col}
+                    for dist, name, hex_col in foundation_matches
+                ],
+            }
+
+            st.session_state.skin_analysis_history.insert(
+                0,
+                {
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "skin_score": skin_score,
+                    "skin_type": results["skin_type"],
+                    "oiliness": results["oiliness"],
+                    "dryness": results["dryness"],
+                    "acne": results["acne"],
+                    "sensitivity": results["sensitivity"],
+                },
+            )
+            st.session_state.skin_analysis_history = st.session_state.skin_analysis_history[:5]
+
+            report_cols = st.columns([1.2, 1, 1])
+            with report_cols[0]:
+                st.download_button(
+                    "⬇️ Download Skin Report",
+                    data=json.dumps(report_payload, indent=2),
+                    file_name="beautybuzzi_skin_report.json",
+                    mime="application/json",
+                )
+            with report_cols[1]:
+                if foundation_matches:
+                    st.metric("Best Shade", foundation_matches[0][1])
+            with report_cols[2]:
+                st.metric("Face Mesh", "Active" if landmarks is not None else "Unavailable")
+
+            tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Analysis", "💧 Products", "🗓️ Routine", "🎨 Tone Match", "📈 History"])
 
             with tab1:
                 st.subheader("Your Skin Profile")
@@ -404,6 +467,14 @@ def render_ai_skin_analysis_page():
                     insights.append("Reapply SPF every 90–120 minutes when outdoors, even on overcast days.")
                 for tip in insights:
                     st.markdown(f"- {tip}")
+
+                st.markdown("---")
+                if landmarks is not None:
+                    st.success("Face landmarks detected. Tone analysis and foundation matching are available for this image.")
+                elif MEDIAPIPE_OK:
+                    st.warning("No face landmarks detected in this image. Skin heuristics still ran, but tone matching is unavailable.")
+                else:
+                    st.info("MediaPipe is not available, so foundation matching is disabled on this machine.")
 
             with tab2:
                 st.subheader("Personalised Product Recommendations")
@@ -486,6 +557,38 @@ def render_ai_skin_analysis_page():
                 st.markdown("</ul></div>", unsafe_allow_html=True)
 
             with tab4:
+                st.subheader("🎨 Skin Tone & Foundation Match")
+                if foundation_matches and skin_rgb is not None:
+                    skin_hex = "#{:02x}{:02x}{:02x}".format(int(skin_rgb[0]), int(skin_rgb[1]), int(skin_rgb[2]))
+                    st.markdown(f"""
+                    <div style="background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:16px;">
+                        <strong>Detected Cheek Tone</strong><br>
+                        <span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:{skin_hex};border:2px solid #ddd;margin:10px 8px 0 0;vertical-align:middle;"></span>
+                        <span style="font-family:monospace;">{skin_hex.upper()}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    shade_cols = st.columns(3)
+                    badges = ["Best Match", "Close Match", "Alternative"]
+                    for idx, (dist, name, hex_col) in enumerate(foundation_matches):
+                        with shade_cols[idx]:
+                            match_score = max(0, 100 - int(dist))
+                            st.markdown(f"""
+                            <div style="background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+                                <div style="font-size:0.8rem;color:#7c3c50;font-weight:700;">{badges[idx]}</div>
+                                <div style="font-size:1rem;font-weight:700;margin-top:6px;">{name}</div>
+                                <div style="width:56px;height:56px;border-radius:50%;background:{hex_col};margin:12px auto;border:3px solid #eee;"></div>
+                                <div style="font-family:monospace;font-size:0.82rem;">{hex_col.upper()}</div>
+                                <div style="font-size:0.82rem;color:#666;margin-top:8px;">Match score: {match_score}%</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    st.markdown("#### Shade Notes")
+                    st.markdown("- Test your closest shade on the jawline, not the wrist.")
+                    st.markdown("- If your neck is lighter than your face, match the neck for a more even result.")
+                    st.markdown("- Choose a more neutral undertone if your skin looks different indoors vs daylight.")
+                else:
+                    st.info("Upload or capture a clear front-facing selfie in even lighting to enable shade matching.")
+
+                st.markdown("---")
                 st.subheader("🌿 Lifestyle Tips for Better Skin")
                 life_tips = {
                     "💧 Hydration": "Drink 2–3 litres of water daily. Skin hydration starts from within.",
@@ -515,47 +618,46 @@ def render_ai_skin_analysis_page():
                 st.info("📅 **Want a professional opinion?** Book a virtual consultation with one of our skin experts on the **Consultations** page.")
                 if st.button("📅 Book a Consultation →"):
                     st.switch_page("pages/6_Consultations.py")
+
+            with tab5:
+                st.subheader("📈 Recent Analysis History")
+                history = st.session_state.skin_analysis_history
+                if history:
+                    latest = history[0]
+                    metric_cols = st.columns(4)
+                    metric_cols[0].metric("Latest Score", latest["skin_score"])
+                    metric_cols[1].metric("Skin Type", latest["skin_type"])
+                    metric_cols[2].metric("Oiliness", f"{latest['oiliness']}%")
+                    metric_cols[3].metric("Dryness", f"{latest['dryness']}%")
+
+                    if len(history) > 1:
+                        trend_history = list(reversed(history))
+                        st.line_chart({
+                            "Skin Score": [item["skin_score"] for item in trend_history],
+                            "Acne": [item["acne"] for item in trend_history],
+                            "Oiliness": [item["oiliness"] for item in trend_history],
+                            "Dryness": [item["dryness"] for item in trend_history],
+                        })
+                        score_delta = latest["skin_score"] - trend_history[0]["skin_score"]
+                        if score_delta > 0:
+                            st.success(f"Skin score trend is improving by {score_delta} points across this session.")
+                        elif score_delta < 0:
+                            st.warning(f"Skin score is down by {abs(score_delta)} points across this session. Review lifestyle and routine changes.")
+                        else:
+                            st.info("Skin score is stable across this session's analyses.")
+
+                    for item in history:
+                        st.markdown(f"""
+                        <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 4px 10px rgba(0,0,0,0.04);">
+                            <strong>{item['timestamp']}</strong> · {item['skin_type']} · Score <strong>{item['skin_score']}</strong><br>
+                            <span style="color:#666;font-size:0.9rem;">Acne {item['acne']}% · Dryness {item['dryness']}% · Oiliness {item['oiliness']}% · Sensitivity {item['sensitivity']}%</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info("Run your first analysis to start building a quick session history.")
         
     # Decorative element
     st.markdown('<div class="decorative-line"></div>', unsafe_allow_html=True)
-    
-    # Introduction card
-    st.markdown("""
-    <div class="css-card">
-        <h3 style="margin-top: 0;">How it works</h3>
-        <p>Upload a clear, well-lit selfie showing your skin without makeup. Our AI will analyze your skin condition and provide personalized recommendations for your skincare routine.</p>
-        <p><strong>For best results:</strong> Use natural lighting, face the camera directly, and avoid filters or editing.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Create columns for upload section
-    col1, col2 = st.columns([3, 2])
-    
-    with col1:
-        # Image upload with custom styling
-        uploaded_file = st.file_uploader("Upload a clear selfie", type=["jpg", "jpeg", "png"])
-    
-    with col2:
-        st.markdown("""
-        <div style="background-color: #f9f0f2; padding: 15px; border-radius: 10px; height: 90%; display: flex; align-items: center; justify-content: center;">
-            <div style="text-align: center;">
-                <span style="font-size: 3rem;">📸</span>
-                <p style="margin-top: 10px;">Your image will appear here</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Process uploaded image
-    if uploaded_file is not None:
-        # Display the uploaded image
-        image = Image.open(uploaded_file)
-        st.image(image, caption='Your uploaded image', use_column_width=True)
-        
-        # Create a button to trigger analysis
-        if st.button("Analyze My Skin"):
-            # Show progress
-            progress_bar = st.progress(0)
-            status_text = st.empty()
             
 def get_level_description(value):
     if value < 30:

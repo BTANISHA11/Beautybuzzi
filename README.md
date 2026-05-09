@@ -19,11 +19,14 @@
 ## ✨ Features
 
 ### 💄 Virtual Makeup Try-On (`app.py`)
-- Upload a face photo or use the built-in sample image
+- Upload a face photo, capture a webcam snapshot, or use the built-in sample image
 - **Gender-aware controls:**
   - *Women / Non-binary* — Lip colour, eyeshadow, blush, eyeliner, hair colour
   - *Men* — Beard tint, brow styling, hair colour
+- MediaPipe landmark rendering with BiSeNet fallback
 - Intensity slider for subtle-to-bold adjustments
+- Smart look presets, compare slider, and saved-look session history
+- Foundation shade matching with cheek tone sampling
 - Side-by-side before / after comparison
 - One-click **Download Result** as PNG
 
@@ -31,8 +34,10 @@
 - Computer-vision heuristics analysing texture, tone and moisture from a photo
 - **Skin Health Score** (0–100) with colour-coded badge
 - Gender / Age Group / Lifestyle selectors for fully personalised output
-- 4-tab report: **Analysis · Product Picks · Daily Routine · Lifestyle Tips**
+- Upload or webcam snapshot analysis flow
+- 5-tab report: **Analysis · Product Picks · Daily Routine · Tone Match · History**
 - Age-aware recommendations (retinol intro at 36+, collagen focus at 46+)
+- JSON skin report export, tone matching, and in-session progress tracking
 - Lifestyle-specific advice: urban pollution, active/outdoor, dry/humid climate
 
 ### 💇 Hairstyle Recommendations (`pages/4_Hairstyles.py`)
@@ -90,9 +95,9 @@
  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
         │                │                │
         ▼                ▼                ▼
- BiSeNet Face     OpenCV Haar       Streamlit Pages
- Parsing Model    Cascade Face      + Custom CSS /
- (PyTorch)        Shape Detect      Google Fonts
+ BiSeNet Face     MediaPipe /       Streamlit Pages
+ Parsing Model    OpenCV CV Layer   + Custom CSS /
+ (PyTorch)        Landmark Tracking Google Fonts
         │
         ▼
  ResNet-18 Backbone
@@ -117,6 +122,7 @@ beautybuzzi/
 │   └── skincare_tips.py              # 5-tab skincare education hub
 │
 ├── model.py                          # BiSeNet face parsing model definition
+├── mediapipe_makeup.py               # Landmark-based LAB blending + tone matching
 ├── resnet.py                         # ResNet-18 backbone (feature encoder)
 ├── test.py                           # evaluate() — inference → segmentation mask
 ├── makeup.py                         # apply_makeup(), apply_region_blend()
@@ -142,7 +148,13 @@ beautybuzzi/
 User Photo (PIL Image / file path)
           │
           ▼
-    test.evaluate()
+        MediaPipe Face Landmarker
+          │
+          ├─ precise lips / eyes / cheeks / jaw
+          └─ fallback path if landmarks unavailable
+          │
+          ▼
+        test.evaluate()
   ┌──────────────────────────────────────────┐
   │  1. Resize image → 512 × 512            │
   │  2. Normalise (ImageNet mean / std)      │
@@ -155,14 +167,13 @@ User Photo (PIL Image / file path)
   └──────────────────────────────────────────┘
           │  parsing map  (H × W, int)
           ▼
-    makeup.apply_makeup()
+    mediapipe_makeup.py / makeup.py
   ┌──────────────────────────────────────────┐
-  │  For each target region (lip/eye/hair…): │
-  │  1. Convert BGR image → HSV colour space │
-  │  2. Replace H + S channels with target   │
-  │     colour (preserves luminance V)       │
-  │  3. Boolean mask: apply only to region   │
-  │  4. Hair region: Gaussian sharpen pass   │
+  │  1. Build region masks from landmarks    │
+  │  2. Feather masks with Gaussian blur     │
+  │  3. Blend in LAB space to preserve       │
+  │     texture and luminance                │
+  │  4. Use BiSeNet for hair segmentation    │
   └──────────────────────────────────────────┘
           │
           ▼
@@ -189,7 +200,7 @@ User Photo (PIL Image / file path)
 |---|---|
 | **Frontend / UI** | Streamlit 1.35+, HTML/CSS, Google Fonts |
 | **Deep Learning** | PyTorch 2.6, BiSeNet (face parsing), ResNet-18 backbone |
-| **Computer Vision** | OpenCV 4.10+, Haar cascade detection, HSV colour blending |
+| **Computer Vision** | OpenCV 4.10+, MediaPipe face landmarks, LAB-space feathered blending |
 | **Image Processing** | Pillow 12+, NumPy 2+, scikit-image (Gaussian blur) |
 | **Data** | pandas 2+, Python dicts (product / style databases) |
 | **Runtime** | Python 3.10–3.13, venv |
@@ -245,18 +256,26 @@ Pillow>=11.0.0
 protobuf>=3.20.3
 pandas>=2.0.0
 setuptools>=65.0.0
+mediapipe>=0.10.0
 ```
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Real-time webcam makeup try-on
-- [ ] Foundation shade matching via skin tone detection
+### Implemented in the current Streamlit app
+- [x] MediaPipe landmark-based try-on
+- [x] Webcam snapshot input
+- [x] LAB-space feathered makeup blending
+- [x] Foundation shade matching via cheek tone detection
+- [x] Session-based saved looks and skin progress history
+
+### Remaining larger roadmap items
+- [ ] True real-time WebRTC makeup streaming
 - [ ] Product affiliate / click-to-buy links
-- [ ] Saved looks and look history (user accounts)
+- [ ] Persistent saved looks with user accounts
 - [ ] Makeup tutorial video integration
-- [ ] Mobile-responsive layout optimisation
+- [ ] Mobile-first frontend and browser-side inference
 
 ---
 

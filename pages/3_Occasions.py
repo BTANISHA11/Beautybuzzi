@@ -339,9 +339,9 @@ with c2:
                 final = cv2.resize(img_r, (orig.shape[1], orig.shape[0]))
                 tab1, tab2 = st.tabs(["Before", "After"])
                 with tab1:
-                    st.image(orig, use_container_width=True)
+                    st.image(orig, width="stretch")
                 with tab2:
-                    st.image(final, use_container_width=True)
+                    st.image(final, width="stretch")
                     buf = io.BytesIO()
                     Image.fromarray(final).save(buf, format="PNG")
                     st.download_button("⬇️ Download Look", buf.getvalue(), "occasion_look.png", "image/png")

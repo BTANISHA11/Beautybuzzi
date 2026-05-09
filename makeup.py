@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from skimage.filters import gaussian
-from test import evaluate
 
 def sharpen(img):
     img = img * 1.0
