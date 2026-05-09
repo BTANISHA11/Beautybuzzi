@@ -1,8 +1,21 @@
-import cv2
 import os
 import numpy as np
 from PIL import Image, ImageColor
 import streamlit as st
+
+# OpenCV is optional at import time; show a friendly Streamlit error if missing
+try:
+    import cv2
+except Exception as e:
+    st.set_page_config(layout="wide")
+    msg = """OpenCV (`cv2`) is not installed in this environment.
+Install it with:
+```
+python -m pip install opencv-python
+```
+Or install all dependencies: `python -m pip install -r requirements.txt`"""
+    st.error(msg)
+    st.stop()
 from test import evaluate
 from recommend_hairstyle import get_face_shape, recommend_hairstyle, apply_hairstyle_overlay
 from makeup import apply_makeup, apply_region_blend

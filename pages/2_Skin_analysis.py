@@ -155,19 +155,77 @@ def local_css():
     """, unsafe_allow_html=True)
 
 def analyze_skin(image):
-    # Placeholder function for skin analysis
-    # In a real application, you would replace this with actual AI model predictions
-    # For demonstration, we'll use random results but with some consistency
-    
-    # Convert to NumPy array to simulate analysis
-    np.random.seed(sum(np.array(image).flatten()[:100]))
-    
+    """Light-weight deterministic skin analysis.
+
+    Uses simple image statistics and high-frequency energy to estimate
+    acne (blemish density), dryness, oiliness (specular highlights),
+    and sensitivity (redness). This is a heuristic fallback until
+    a trained model is integrated.
+    """
+    # Ensure NumPy array (RGB)
+    img = np.array(image.convert("RGB")) if hasattr(image, 'convert') else np.array(image)
+
+    # Resize for faster processing
+    try:
+        import cv2 as _cv
+        img_small = _cv.resize(img, (512, 512), interpolation=_cv.INTER_AREA)
+    except Exception:
+        img_small = img if img.shape[0] <= 512 else img[:512, :512]
+
+    # Convert to float for computations
+    arr = img_small.astype(np.float32)
+    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+
+    # Brightness and contrast
+    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    mean_lum = np.mean(lum)
+    std_lum = np.std(lum)
+
+    # Redness (sensitivity proxy)
+    redness_map = np.clip(r - (g + b) / 2.0, 0, 255)
+    redness_score = float(np.mean(redness_map) / 255.0) * 100.0
+
+    # High-frequency energy as acne/blemish proxy (edges / texture)
+    try:
+        import cv2 as _cv
+        gray = _cv.cvtColor(img_small.astype(np.uint8), _cv.COLOR_RGB2GRAY)
+        dtype_const = _cv.CV_32F if hasattr(_cv, 'CV_32F') else (_cv.CV_64F if hasattr(_cv, 'CV_64F') else _cv.CV_8U)
+        lap = np.abs(_cv.Laplacian(gray, dtype_const))
+        hf_energy = float(np.mean(lap))
+    except Exception:
+        # fallback: use local std deviation
+        hf_energy = float(std_lum)
+
+    # Normalize heuristics to 0-100
+    acne = min(max(int((hf_energy / (hf_energy + 10)) * 100), 0), 100)
+    sensitivity = min(max(int(redness_score), 0), 100)
+
+    # Oiliness: detect specular highlights (high luminance, low saturation)
+    sat = 1.0 - (np.min(arr, axis=2) / (np.max(arr, axis=2) + 1e-6))
+    spec_mask = (lum > (mean_lum + std_lum)) & (sat < 0.35)
+    oiliness = int(np.clip(100.0 * (np.sum(spec_mask) / spec_mask.size), 0, 100))
+
+    # Dryness: inverse of oiliness, adjusted by low brightness
+    dryness = int(np.clip(100.0 * (1.0 - (np.sum(spec_mask) / spec_mask.size)) * (1.0 - mean_lum / 255.0), 0, 100))
+
+    # Derive skin type heuristic
+    if oiliness > 60 and acne > 40:
+        skin_type = "Oily"
+    elif dryness > 60:
+        skin_type = "Dry"
+    elif sensitivity > 50:
+        skin_type = "Sensitive"
+    elif 40 < oiliness <= 60:
+        skin_type = "Combination"
+    else:
+        skin_type = "Normal"
+
     results = {
-        "acne": np.random.randint(15, 85),
-        "dryness": np.random.randint(15, 85),
-        "oiliness": np.random.randint(15, 85),
-        "sensitivity": np.random.randint(15, 85),
-        "skin_type": np.random.choice(["Combination", "Oily", "Dry", "Normal", "Sensitive"])
+        "acne": acne,
+        "dryness": dryness,
+        "oiliness": oiliness,
+        "sensitivity": sensitivity,
+        "skin_type": skin_type,
     }
     return results
 
