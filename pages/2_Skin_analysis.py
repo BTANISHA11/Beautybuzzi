@@ -296,7 +296,7 @@ def render_ai_skin_analysis_page():
     st.markdown("### 👤 Your Profile")
     pc1, pc2, pc3 = st.columns(3)
     with pc1:
-        gender = st.selectbox("Gender", ["Woman", "Man", "Non-binary / Prefer not to say"])
+        gender = st.selectbox("Gender", ["Woman", "Man"])
     with pc2:
         age_group = st.selectbox("Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
     with pc3:
@@ -451,17 +451,11 @@ def render_ai_skin_analysis_page():
                         "Shaving causes micro-abrasions; use an alcohol-free balm or serum post-shave.",
                         "Niacinamide is a great all-rounder for men: reduces pores, controls oil, and evens tone.",
                     ]
-                elif gender == "Woman":
+                else:
                     insights = [
                         "Hormonal fluctuations throughout the month can cause breakouts — track your cycle.",
                         "Estrogen supports collagen production; prioritise antioxidants as levels drop with age.",
                         "SPF every morning is the single most effective anti-ageing step.",
-                    ]
-                else:
-                    insights = [
-                        "Everyone benefits from SPF, hydration, and a gentle cleanser — start there.",
-                        "Track your skin's response to products over 4–6 weeks before switching.",
-                        "Patch-test new actives on your jaw before applying to your full face.",
                     ]
                 if age_group in ["36–45", "46–55", "55+"]:
                     insights.append("Consider adding a retinol or peptide serum to support cell turnover and firmness.")

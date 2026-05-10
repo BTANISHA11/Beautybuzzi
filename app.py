@@ -91,7 +91,7 @@ st.markdown(
     """
             <div style="text-align: left; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
                 <p style="font-size: 1.1rem; color: #7c3c50; font-weight: 300;">
-                    Real-time AI-powered makeup & grooming – for everyone 💫
+                    Real-time AI-powered makeup and grooming for women and men 💫
                 </p>
             </div>
     """,
@@ -188,13 +188,15 @@ st.sidebar.markdown("## 🎨 Personalise Your Look")
 # Gender selector
 gender = st.sidebar.radio(
     "👤 I identify as",
-    ["👩 Woman", "👨 Man", "🌈 Non-binary"],
+    ["👩 Woman", "👨 Man"],
     index=0,
 )
 
+is_male = "Man" in gender
+
 st.sidebar.markdown("---")
 
-if "Man" in gender:
+if is_male:
     preset_name = st.sidebar.selectbox("✨ Smart Look Preset", list(MEN_PRESETS.keys()))
     active_preset = MEN_PRESETS[preset_name]
 else:
@@ -229,7 +231,6 @@ else:
 show_foundation = st.sidebar.checkbox("🎨 Foundation Shade Match", value=False)
 
 original_image = image.copy()
-ori = original_image.copy()
 image = cv2.resize(image, (1024, 1024))
 
 # Parsing with pre-trained BiSeNet model (hair segmentation + fallback makeup)
@@ -244,7 +245,7 @@ mp_ok = lm is not None
 st.sidebar.markdown("---")
 
 # ── Makeup / Grooming controls based on gender ────────────────────────────────
-if "Man" in gender:
+if is_male:
     st.sidebar.markdown("### 💈 Men's Grooming")
     hair_color    = st.sidebar.color_picker('🖤 Hair Color', active_preset.get("hair_color", '#1a0a00'))
     beard_color   = st.sidebar.color_picker('🧔 Beard / Stubble Color', active_preset.get("beard_color", '#2c1a0e'))
@@ -269,7 +270,7 @@ st.sidebar.markdown("---")
 hair_rgb       = ImageColor.getcolor(hair_color, "RGB")
 foundation_rgb = ImageColor.getcolor(foundation_color, "RGB")
 
-if "Man" in gender:
+if is_male:
     beard_rgb = ImageColor.getcolor(beard_color, "RGB")
     brow_rgb  = ImageColor.getcolor(brow_color, "RGB")
     lip_rgb   = ImageColor.getcolor(lip_color_hex, "RGB")
@@ -341,7 +342,7 @@ with col1:
     st.image(original_image, width="stretch")
 
 with col2:
-    label = "💈 Groomed Look" if "Man" in gender else "💄 Transformed Look"
+    label = "💈 Groomed Look" if is_male else "💄 Transformed Look"
     st.markdown(f"#### {label} {method_badge}", unsafe_allow_html=True)
     st.image(image, width="stretch")
 
@@ -452,7 +453,7 @@ elif MEDIAPIPE_OK:
 else:
     st.info("💡 Install MediaPipe for landmark-precise rendering: `pip install mediapipe`")
 
-if "Man" in gender:
+if is_male:
     st.info("💡 **Men's tip:** Use the beard colour picker to simulate stubble, short beard, or full beard shades before your next barber visit.")
 else:
     st.info("💡 **Pro tip:** Try matching your blush to your lip colour for a cohesive, natural look.")

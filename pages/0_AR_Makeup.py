@@ -47,6 +47,22 @@ st.markdown("""
 - 🤖 Instant beauty routine recommendations
 """)
 
+
+def _hex_to_rgb(value: str) -> tuple[int, int, int]:
+    return tuple(int(value.lstrip('#')[index:index + 2], 16) for index in (0, 2, 4))
+
+
+def _build_render_landmarks(frame_data: dict) -> dict:
+    return {
+        'lips_all': frame_data.get('lips_all', []),
+        'left_eye': frame_data.get('left_eye', []),
+        'right_eye': frame_data.get('right_eye', []),
+        'left_eyelids': frame_data.get('left_eyelids', []),
+        'right_eyelids': frame_data.get('right_eyelids', []),
+        'left_cheek': frame_data.get('left_cheek'),
+        'right_cheek': frame_data.get('right_cheek'),
+    }
+
 # ============================================================================
 # SIDEBAR CONTROLS
 # ============================================================================
@@ -99,7 +115,7 @@ with col1:
     skin_analyzer = DermatologyGradeSkinAnalyzer()
     
     # Webcam input
-    picture = st.camera_input("Take a photo or video")
+    picture = st.camera_input("Take a photo")
     
     if picture is not None:
         # Convert to OpenCV format
@@ -110,14 +126,18 @@ with col1:
         # Process frame
         if enable_ar:
             # Step 1: AR pipeline - detect faces + extract regions
-            frame_data = ar_pipeline.process_frame(image)
-            
-            if frame_data and 'landmarks' in frame_data:
+            _, frame_data = ar_pipeline.process_frame(image)
+            render_landmarks = _build_render_landmarks(frame_data)
+
+            if render_landmarks['lips_all'] or render_landmarks['left_eye'] or render_landmarks['right_eye']:
                 # Step 2: 3D tracking - get head pose
                 if enable_3d_tracking:
                     face_3d = face_tracker.detect_face_3d(image)
-                    pitch, yaw, roll = face_3d['head_pose']
-                    intensity_factor = face_tracker._calculate_intensity_factor(yaw)
+                    if face_3d and 'head_pose' in face_3d:
+                        _, yaw, _ = face_3d['head_pose']
+                        intensity_factor = face_tracker._calculate_intensity_factor(yaw)
+                    else:
+                        intensity_factor = 1.0
                 else:
                     intensity_factor = 1.0
                 
@@ -125,42 +145,35 @@ with col1:
                 result = image.copy()
                 
                 # Apply lipstick
-                if 'lips_region' in frame_data:
-                    hex_to_rgb = tuple(int(lipstick_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+                if render_landmarks['lips_all']:
                     result = rendering_engine.render_lipstick(
                         result,
-                        frame_data['lips_region'],
-                        hex_to_rgb,
+                        _hex_to_rgb(lipstick_color),
+                        render_landmarks,
                         intensity=lipstick_intensity * intensity_factor,
                         finish=finish_type
                     )
                 
                 # Apply eyeshadow
-                if 'left_eye' in frame_data or 'right_eye' in frame_data:
-                    hex_to_rgb_eye = tuple(int(eyeshadow_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-                    for eye_key in ['left_eye', 'right_eye']:
-                        if eye_key in frame_data:
-                            result = rendering_engine.render_eyeshadow(
-                                result,
-                                frame_data[eye_key],
-                                hex_to_rgb_eye,
-                                intensity=eyeshadow_intensity * intensity_factor
-                            )
+                if render_landmarks['left_eye'] or render_landmarks['right_eye']:
+                    result = rendering_engine.render_eyeshadow(
+                        result,
+                        _hex_to_rgb(eyeshadow_color),
+                        render_landmarks,
+                        intensity=eyeshadow_intensity * intensity_factor
+                    )
                 
                 # Apply blush
-                if 'left_cheek' in frame_data or 'right_cheek' in frame_data:
-                    hex_to_rgb_blush = tuple(int(blush_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-                    for cheek_key in ['left_cheek', 'right_cheek']:
-                        if cheek_key in frame_data:
-                            result = rendering_engine.render_blush(
-                                result,
-                                frame_data[cheek_key],
-                                hex_to_rgb_blush,
-                                intensity=blush_intensity * intensity_factor
-                            )
+                if render_landmarks['left_cheek'] is not None or render_landmarks['right_cheek'] is not None:
+                    result = rendering_engine.render_blush(
+                        result,
+                        _hex_to_rgb(blush_color),
+                        render_landmarks,
+                        intensity=blush_intensity * intensity_factor
+                    )
                 
                 result_rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-                st.image(result_rgb, use_column_width=True, caption="✨ With AR Makeup")
+                st.image(result_rgb, width="stretch", caption="✨ With AR Makeup")
                 
                 # Step 4: Real-time skin analysis (optional, slower)
                 if enable_skin_analysis:
@@ -197,7 +210,7 @@ with col1:
                 st.warning("⚠️ No face detected. Ensure face is clearly visible.")
         else:
             # Display original
-            st.image(image_rgb, use_column_width=True, caption="Original Photo")
+            st.image(image_rgb, width="stretch", caption="Original Photo")
 
 with col2:
     st.subheader("📊 Analysis Results")

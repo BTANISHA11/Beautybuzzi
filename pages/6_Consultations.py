@@ -401,7 +401,7 @@ def render_consultations_page():
             name = st.text_input("Full Name *")
             email = st.text_input("Email Address *")
             phone = st.text_input("Phone Number (optional)")
-            gender = st.selectbox("I identify as", ["Woman", "Man", "Non-binary", "Prefer not to say"])
+            gender = st.selectbox("I identify as", ["Woman", "Man"])
             age_group = st.selectbox("Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
 
             st.markdown("#### 🧴 Your Skin & Hair Profile")
@@ -472,7 +472,7 @@ def render_consultations_page():
     st.markdown("### ❓ Frequently Asked Questions")
     faqs = [
         ("How long is a consultation?", "Standard consultations are 45–60 minutes. Follow-up sessions are 20–30 minutes."),
-        ("Do you offer consultations for men?", "Absolutely. James Rivera specialises in men's grooming, skincare and beard care. All our experts are trained to advise everyone regardless of gender."),
+        ("Do you offer consultations for men?", "Absolutely. James Rivera specialises in men's grooming, skincare and beard care, and our team also supports women's skincare, makeup and treatment planning."),
         ("What should I prepare before my session?", "Take note of the products you currently use, any skin reactions you've had, and bring photos of your skin (no makeup) in natural light if possible."),
         ("Are the video calls secure?", "Yes. We use end-to-end encrypted video platforms. No session recordings are stored without explicit consent."),
         ("Can I get product recommendations after?", "Yes. Your expert will send a personalised product list within 48 hours of your session via email."),

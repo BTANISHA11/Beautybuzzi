@@ -228,7 +228,7 @@ def render_product_recommendations_page():
             """
             <div style="text-align: left; margin-bottom: 25px; font-family: 'Poppins', sans-serif;">
                 <p style="font-size: 1.2rem; color: #7c3c50; font-weight: 300;">
-                    Discover your perfect skincare routine ✨
+                    Tailored skincare for women and streamlined grooming for men ✨
                 </p>
             </div>
             """,
@@ -249,11 +249,11 @@ def render_product_recommendations_page():
                         border: 1px solid rgba(255, 255, 255, 0.3);
                         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
                 <h3 style="color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 15px;">
-                    Your Personal Skincare Assistant
+                    Personalised Product Planning
                 </h3>
                 <p style="color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 1rem;">
-                    Tell us about your skin, and we'll recommend the perfect products for your unique needs. 
-                    Our expert selections are tailored to your skin type and concerns for the most radiant results. 
+                    Choose a women-focused skincare path or a men-focused grooming path and get a tighter shortlist.
+                    The recommendations below are intentionally different in tone, routine depth, and product mix.
                 </p>
             </div>
             """,
@@ -273,9 +273,34 @@ def render_product_recommendations_page():
         # ── Gender & Age selectors ────────────────────────────────────────────
         g_col, a_col = st.columns(2)
         with g_col:
-            gender = st.selectbox("👤 I identify as", ["Woman", "Man", "Non-binary"])
+            gender = st.selectbox("👤 I identify as", ["Woman", "Man"])
         with a_col:
             age_group = st.selectbox("🎂 Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
+
+        if gender == "Man":
+            st.markdown(
+                """
+                <div style="background-color: rgba(124, 60, 80, 0.08); border-radius: 15px; padding: 18px; margin: 10px 0 20px 0; border: 1px solid rgba(124, 60, 80, 0.12);">
+                    <h3 style="color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 600; margin: 0 0 10px 0;">Men's grooming path</h3>
+                    <p style="color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 0.98rem; margin: 0;">
+                        This path stays practical: cleanser, shave or beard support, oil control, post-shave recovery, and fast daily maintenance.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                """
+                <div style="background-color: rgba(183, 110, 121, 0.08); border-radius: 15px; padding: 18px; margin: 10px 0 20px 0; border: 1px solid rgba(183, 110, 121, 0.12);">
+                    <h3 style="color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 600; margin: 0 0 10px 0;">Women's skincare path</h3>
+                    <p style="color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 0.98rem; margin: 0;">
+                        This path leans into layered skincare: core daily products, weekly treatments, and targeted boosters for glow, tone, hydration, or healthy ageing.
+                    </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         # Men's grooming path
         if gender == "Man":
@@ -286,6 +311,10 @@ def render_product_recommendations_page():
             men_skin_type = sel_men_type.split(" ")[1]
             men_budget = st.slider("Budget ($)", 0, 150, (20, 80), step=5)
             has_beard = st.checkbox("🧔 I have / want to grow a beard")
+            routine_focus = st.selectbox(
+                "🎯 Routine Focus",
+                ["Daily basics", "Post-shave recovery", "Oil control", "Beard maintenance"],
+            )
 
             men_products = {
                 "Normal": [
@@ -325,6 +354,44 @@ def render_product_recommendations_page():
             ]
             beard_products = enrich_product_list(beard_products, segment="men", collection="beard-care", category="grooming")
 
+            focus_catalog = {
+                "Daily basics": {
+                    "summary": "A low-friction routine for men who want clean skin, SPF, and one reliable treatment step.",
+                    "products": [
+                        {"name": "Daily Moisturiser SPF 30", "brand": "Bulldog", "price": 14, "icon": "☀️", "desc": "One-step hydration and daily UV protection for fast mornings."},
+                        {"name": "Vitamin C Face Gel", "brand": "Lumin", "price": 24, "icon": "🍊", "desc": "Brightens tired skin without a heavy cream finish."},
+                    ],
+                },
+                "Post-shave recovery": {
+                    "summary": "Built for irritation-prone skin after shaving, with calming and barrier-support products.",
+                    "products": [
+                        {"name": "Post-Shave Recovery Balm", "brand": "Nivea Men", "price": 9, "icon": "🪒", "desc": "Soothes razor burn, tightness, and redness immediately after shaving."},
+                        {"name": "Ceramide Repair Cream", "brand": "CeraVe", "price": 16, "icon": "🧴", "desc": "Supports the barrier when skin feels stripped or reactive."},
+                    ],
+                },
+                "Oil control": {
+                    "summary": "Targets shine, clogged pores, and midday greasiness without over-drying the face.",
+                    "products": [
+                        {"name": "Niacinamide Matte Serum", "brand": "The Ordinary", "price": 9, "icon": "💧", "desc": "Balances oil production and helps pores look tighter."},
+                        {"name": "Clay Face Scrub", "brand": "Brickell", "price": 28, "icon": "🧽", "desc": "A weekly reset for men dealing with congestion and rough texture."},
+                    ],
+                },
+                "Beard maintenance": {
+                    "summary": "Keeps facial hair softer, cleaner, and easier to shape while protecting the skin underneath.",
+                    "products": [
+                        {"name": "Beard Softening Conditioner", "brand": "Scotch Porter", "price": 19, "icon": "🧔", "desc": "Adds slip and softness to coarse beards and moustaches."},
+                        {"name": "Precision Beard Line Pencil", "brand": "Aberlite", "price": 22, "icon": "✏️", "desc": "Helps sharpen cheek and neckline edges for a cleaner finish."},
+                    ],
+                },
+            }
+            men_focus = focus_catalog[routine_focus]
+            focus_products = enrich_product_list(
+                men_focus["products"],
+                segment="men",
+                collection=f"men-focus-{routine_focus.lower().replace(' ', '-')}",
+                category="grooming",
+            )
+
             filtered_men = [p for p in men_products.get(men_skin_type, []) if men_budget[0] <= p["price"] <= men_budget[1]]
 
             st.markdown(f"#### 🧴 {men_skin_type} Skin — Recommended Products (${men_budget[0]}–${men_budget[1]})")
@@ -343,9 +410,18 @@ def render_product_recommendations_page():
                 else:
                     st.info("No beard products in this budget range.")
 
+            st.markdown(f"#### 🎯 {routine_focus} Picks")
+            st.caption(men_focus["summary"])
+            filtered_focus = [p for p in focus_products if men_budget[0] <= p["price"] <= men_budget[1]]
+            if filtered_focus:
+                for idx, product in enumerate(filtered_focus):
+                    render_product_card(product, key_prefix=f"men_focus_{idx}", accent_color="#9b5b6e", description_key="desc")
+            else:
+                st.info("No focus products in this budget range.")
+
             # Men's routine guide
             st.markdown("---")
-            st.markdown("#### 📋 Simple Men's Skincare Routine")
+            st.markdown("#### 📋 Simple Men's Grooming Routine")
             am = ["Gentle face wash", "Serum (niacinamide or vitamin C)", "Moisturiser with SPF 50"]
             pm = ["Face wash", "Treatment serum (retinol 1–2× a week if 30+)", "Moisturiser"]
             if has_beard:
@@ -368,7 +444,7 @@ def render_product_recommendations_page():
             st.info("💡 **Minimum viable routine:** cleanser + SPF in the AM, cleanser + moisturiser in the PM. That's it. Everything else is a bonus.")
             return   # Exit the function — men's section is complete
 
-        # ── Women / Non-binary continue with the existing skin-type section ───
+        # ── Women's skincare path ─────────────────────────────────────────────
         
         # Skin type selection with icons
         skin_types = {
@@ -386,6 +462,11 @@ def render_product_recommendations_page():
         )
         # Extract actual skin type without the emoji
         skin_type = selected_skin_type.split(" ")[1]
+
+        routine_goal = st.selectbox(
+            "✨ Primary Routine Goal",
+            ["Barrier repair", "Glow and hydration", "Healthy ageing", "Tone evening"],
+        )
         
         # Skin concerns selection with better UI
         concern_icons = {
@@ -495,7 +576,7 @@ def render_product_recommendations_page():
                 **value,
                 "products": enrich_product_list(
                     value["products"],
-                    segment="women-non-binary",
+                    segment="women",
                     collection=f"{key.lower()}-core",
                     category="skincare",
                 ),
@@ -545,11 +626,39 @@ def render_product_recommendations_page():
         concern_products = {
             concern: enrich_product_list(
                 products,
-                segment="women-non-binary",
+                segment="women",
                 collection=f"concern-{concern.lower()}",
                 category="treatment",
             )
             for concern, products in concern_products.items()
+        }
+
+        routine_goal_products = {
+            "Barrier repair": [
+                {"name": "Barrier Support Serum", "brand": "The Ordinary", "price": 17, "description": "Supports stressed skin with ceramides and calming lipids.", "icon": "🧱"},
+                {"name": "Rescue Cream", "brand": "First Aid Beauty", "price": 30, "description": "A richer cream for compromised or flaky skin days.", "icon": "🫶"},
+            ],
+            "Glow and hydration": [
+                {"name": "Milky Hydration Essence", "brand": "Laneige", "price": 32, "description": "Preps skin for a plumper, glowier finish.", "icon": "✨"},
+                {"name": "Peptide Glow Cream", "brand": "Ole Henriksen", "price": 44, "description": "Adds bounce and luminosity without feeling heavy.", "icon": "🌟"},
+            ],
+            "Healthy ageing": [
+                {"name": "Retinal Night Serum", "brand": "Medik8", "price": 58, "description": "Targets texture and fine lines with a more advanced retinoid.", "icon": "🌙"},
+                {"name": "Firming Peptide Cream", "brand": "Paula's Choice", "price": 39, "description": "Supports elasticity and smoother-looking skin over time.", "icon": "🧬"},
+            ],
+            "Tone evening": [
+                {"name": "Brightening Tranexamic Serum", "brand": "Topicals", "price": 36, "description": "Helps fade post-acne marks and uneven patches.", "icon": "🌓"},
+                {"name": "Azelaic Booster", "brand": "Naturium", "price": 24, "description": "Improves tone clarity while staying gentle enough for regular use.", "icon": "🍑"},
+            ],
+        }
+        routine_goal_products = {
+            key: enrich_product_list(
+                value,
+                segment="women",
+                collection=f"goal-{key.lower().replace(' ', '-')}",
+                category="treatment",
+            )
+            for key, value in routine_goal_products.items()
         }
         
         # Button to get recommendations
@@ -694,6 +803,26 @@ def render_product_recommendations_page():
                     if not weekly_products:
                         st.info("No specific weekly treatments found in your budget range. Consider increasing your budget for special treatments.")
                 
+                # Concern-specific products
+                st.markdown('<div class="decorative-line"></div>', unsafe_allow_html=True)
+                st.markdown(
+                    f"""
+                    <h3 style="text-align: center; color: #7c3c50; font-family: 'Playfair Display', serif; margin: 30px 0 10px 0;">
+                        Goal-Based Boosters: {routine_goal}
+                    </h3>
+                    <p style="text-align: center; color: #5a5a5a; font-family: 'Poppins', sans-serif; margin-bottom: 20px;">
+                        Add one or two of these women-focused extras if {routine_goal.lower()} is your main priority.
+                    </p>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                goal_products = [p for p in routine_goal_products[routine_goal] if budget[0] <= p["price"] <= budget[1]]
+                if goal_products:
+                    for idx, product in enumerate(goal_products):
+                        render_product_card(product, key_prefix=f"goal_{idx}", accent_color="#b76e79")
+                else:
+                    st.info("No goal-based booster products in your budget range.")
+
                 # Concern-specific products
                 if skin_concerns:
                     st.markdown('<div class="decorative-line"></div>', unsafe_allow_html=True)

@@ -149,10 +149,14 @@ beautybuzzi/
 │   └── 📂 hairstyles/                   # Hairstyle reference images
 │
 ├── 🏠 app.py                            # Main Streamlit app
+├── ▶️ main.py                           # Alternate Streamlit launcher
 ├── 📋 requirements.txt                  # Python dependencies (17 packages)
 ├── 📖 README.md                         # This file
-├── 🏗️ PRODUCTION_ARCHITECTURE.md       # Technical architecture
-├── ✅ VALIDATION_REPORT.txt            # Test results (100% pass)
+├── 📂 docs/                             # Architecture and project notes
+│   ├── CLEANUP_SUMMARY.md              # Cleanup notes
+│   ├── FINAL_STATUS.txt                # Archived project status
+│   ├── REORGANIZATION_COMPLETE.txt     # Archived reorganization notes
+│   └── VALIDATION_REPORT.txt           # Test results (100% pass)
 └── 📄 LICENSE                          # MIT License
 ```
 
@@ -189,7 +193,7 @@ beautybuzzi/
 
 4. **Run the application**
    ```bash
-   streamlit run app.py
+  streamlit run main.py
    ```
 
 5. **Access the app**
@@ -583,8 +587,8 @@ Contributions are welcome! Please:
 
 For issues, questions, or suggestions:
 - Open a GitHub issue
-- Check [PRODUCTION_ARCHITECTURE.md](PRODUCTION_ARCHITECTURE.md) for technical details
-- Review [VALIDATION_REPORT.txt](VALIDATION_REPORT.txt) for test results
+- Check the `docs/` folder for archived project notes
+- Review [docs/VALIDATION_REPORT.txt](docs/VALIDATION_REPORT.txt) for test results
 
 ---
 

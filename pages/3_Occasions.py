@@ -287,11 +287,9 @@ st.caption("AI-powered look recommendations tailored to you — select your gend
 
 with st.sidebar:
     st.markdown("### 🎭 Occasions Settings")
-    gender = st.radio("I identify as", ["Woman", "Man", "Non-binary"], horizontal=True)
-    if gender == "Non-binary":
-        st.info("Showing all looks — mix and match what feels right for you.")
+    gender = st.radio("I identify as", ["Woman", "Man"], horizontal=True)
 
-occasion_db = WOMEN_OCCASIONS if gender != "Man" else MEN_OCCASIONS
+occasion_db = WOMEN_OCCASIONS if gender == "Woman" else MEN_OCCASIONS
 
 st.markdown("---")
 selected_occasion = st.selectbox("🗓️ Choose your Occasion", list(occasion_db.keys()), index=0)
@@ -301,7 +299,7 @@ c1, c2 = st.columns([1, 1])
 
 with c1:
     st.markdown(f"### {selected_occasion}")
-    if gender != "Man":
+    if gender == "Woman":
         st.markdown(f"*{occ_data.get('desc', '')}*")
         for t in occ_data.get("tags", []):
             st.markdown(f'<span class="tip-badge">{t}</span>', unsafe_allow_html=True)
@@ -322,7 +320,7 @@ with c1:
             st.markdown(f"- {p}")
 
 with c2:
-    if gender != "Man":
+    if gender == "Woman":
         st.markdown("#### 🎨 AI Virtual Try-On")
         img_file = st.file_uploader("Upload your photo", type=["jpg", "jpeg", "png"], key="occ_upload")
         if st.button(f"✨ Try the {selected_occasion} Look"):

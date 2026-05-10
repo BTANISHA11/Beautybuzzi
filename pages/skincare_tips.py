@@ -28,12 +28,12 @@ h1 {
 """, unsafe_allow_html=True)
 
 st.title("🌿 Skincare Tips & Routines")
-st.caption("Science-backed tips, personalised routines, and ingredient education for every skin type and gender.")
+st.caption("Science-backed tips, personalised routines, and ingredient education for women and men across every skin type.")
 
 # ── Gender selector ────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Personalise")
-    gender = st.radio("I identify as", ["Woman", "Non-binary", "Man"], index=0)
+    gender = st.radio("I identify as", ["Woman", "Man"], index=0)
     age_group = st.selectbox("Age Group", ["Under 18", "18–25", "26–35", "36–45", "46–55", "55+"])
     skin_type = st.selectbox("Skin Type", ["Normal", "Oily", "Dry", "Combination", "Sensitive"])
     season = st.selectbox("Current Season", ["Spring", "Summer", "Autumn / Fall", "Winter"])
@@ -329,4 +329,4 @@ with tabs[4]:
     st.info("💡 Your skin takes about 4 weeks to visibly respond to seasonal adjustments. Introduce changes gradually.")
 
 st.markdown("---")
-st.caption("© 2025 BeautyBuzzi | Evidence-based skincare education for everyone")
+st.caption("© 2025 BeautyBuzzi | Evidence-based skincare education for women and men")

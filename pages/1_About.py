@@ -423,12 +423,12 @@ def set_background_from_url(url):
 
 
 # App header on main content area
-st.markdown('<h1>About BeautyBuzz</h1>', unsafe_allow_html=True)
+st.markdown('<h1>About BeautyBuzzi</h1>', unsafe_allow_html=True)
 st.markdown(
             """
             <div style="text-align: left; margin-bottom: 25px; font-family: 'Poppins', sans-serif;">
                 <p style="font-size: 1.2rem; color: #7c3c50; font-weight: 300;">
-                    Discover your perfect skincare routine ✨
+                    One app for virtual try-on, skin analysis, grooming, products, and consultations ✨
                 </p>
             </div>
             """,
@@ -454,11 +454,11 @@ st.markdown(
                         border: 1px solid rgba(255, 255, 255, 0.3);
                         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
                 <h3 style="color: #7c3c50; font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 15px;">
-                    Your Personal Skincare Assistant
+                    BeautyBuzzi at a Glance
                 </h3>
                 <p style="color: #5a5a5a; font-family: 'Poppins', sans-serif; font-size: 1rem;">
-                    Tell us about your skin, and we'll recommend the perfect products for your unique needs. 
-                    Our expert selections are tailored to your skin type and concerns for the most radiant results. 
+                    BeautyBuzzi is currently focused on women and men only. It combines selfie-based skin intelligence,
+                    AR try-on, grooming and skincare flows, product discovery, and expert consultations in one Streamlit experience.
                 </p>
             </div>
             """,
@@ -467,24 +467,46 @@ st.markdown(
         
 
 # Features Section
-st.markdown('<h2 class="section-title">Your Skin-Smart Beauty Assistant</h2>', unsafe_allow_html=True)
+st.markdown('<h2 class="section-title">Core BeautyBuzzi Workflows</h2>', unsafe_allow_html=True)
 
 st.markdown("""
 <div class="feature-grid">
     <div class="feature-card">
         <div class="feature-icon">🔍</div>
         <h3>Advanced Skin Analysis</h3>
-        <p>Our AI scans your selfie to detect skin concerns including acne, dryness, sensitivity, aging signs, and hyperpigmentation with dermatologist-level accuracy.</p>
+        <p>Users can upload a selfie or webcam snapshot and get skin condition heuristics, tone matching, routines, and product direction.</p>
     </div>
     <div class="feature-card">
         <div class="feature-icon">💡</div>
-        <h3>Smart Recommendations</h3>
-        <p>Get personalized skincare and makeup suggestions based on your unique skin profile, concerns, and beauty goals for a routine that truly works.</p>
+        <h3>Distinct Women + Men Paths</h3>
+        <p>Women get layered skincare and makeup guidance, while men get streamlined grooming, shave, beard, and oil-control support.</p>
     </div>
     <div class="feature-card">
         <div class="feature-icon">💄</div>
         <h3>Virtual Try-On Studio</h3>
-        <p>See how products actually look on your face using our high-fidelity AR technology before purchasing, saving time and money on products that don't match.</p>
+        <p>AR makeup and grooming previews let users test looks visually before committing to products or a routine.</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<h2 class="section-title">Platform Snapshot</h2>', unsafe_allow_html=True)
+
+st.markdown("""
+<div class="feature-grid">
+    <div class="feature-card">
+        <div class="feature-icon">📸</div>
+        <h3>Upload or Webcam Input</h3>
+        <p>The main flows support uploaded images or in-app snapshots, which keeps testing and consultation prep quick.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Shade + Product Matching</h3>
+        <p>Foundation, skincare, and grooming suggestions are filtered with tone, concern, routine, and budget inputs.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🧭</div>
+        <h3>Guided Next Steps</h3>
+        <p>Occasion looks, consultations, and the AI assistant turn the app from a one-off demo into a guided beauty workflow.</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -527,17 +549,17 @@ st.markdown("""
 # CTA Section
 st.markdown("""
 <div class="cta-section">
-    <h2 class="cta-title">Ready for Healthier Beauty?</h2>
-    <p>Discover makeup and skincare that's actually good for your unique skin type.</p>
+    <h2 class="cta-title">Ready to Build Your Routine?</h2>
+    <p>Move from analysis to try-on, products, and consultations inside one beauty workflow.</p>
     <button class="cta-button">Start Free Analysis</button>
-    <p class="cta-text">No credit card needed • 2-minute setup • AI-powered recommendations</p>
+    <p class="cta-text">Women and men only right now • Fast setup • AI-powered recommendations</p>
 </div>
 """, unsafe_allow_html=True)
 
 # Footer
 st.markdown("""
     <div class="footer">
-        <p>© 2025 Glow Guide | Your Personal Skincare Assistant</p>
+        <p>© 2025 BeautyBuzzi | Virtual try-on, skincare, and grooming guidance</p>
         <p style="font-size: 0.75rem; margin-top: 5px;">
             Results are personalized recommendations and not medical advice.
             Consult with a dermatologist for specific skin concerns.
